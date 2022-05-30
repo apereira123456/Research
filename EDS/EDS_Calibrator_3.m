@@ -16,7 +16,7 @@ sb_a = 0.63;    sb_m = -0.45;
 % set the pixel bounds of the region we want to look at
 % xmin = 300; xmax = 475;
 % ymin = 570; ymax = 670;
-full_map = 0;
+full_map = 1;
 xmin = 408; xmax = 1024;
 ymin = 1; ymax = 324;
 % ======================================
