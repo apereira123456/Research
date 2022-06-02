@@ -36,7 +36,6 @@ end
 figure()
 hold on
 imshow(data)
-colormap(summer)
 
 %% Specify analysis region
 if full_map == 1
@@ -129,13 +128,22 @@ fprintf('B/C: %0.2f\n',avg_b_to_c_ratio)
 
 % plot the line averaged atomic percents over the length of the region
 figure()
+hold on
+plot(at_percent_b,'.')
+plot(at_percent_c,'.')
 plot(at_percent_si,'.')
-title('Atomic % Si Over the EDS Region')
+
+title('Atomic % Over the EDS Region')
 xlabel('Position (pixel)')
 ylabel('Atomic Percent (%)')
+legend('B','C','Si')
 
 figure()
+hold on
 plot(b_to_c_ratio,'.')
-title('B/C Ratio Over the EDS Region')
+plot(at_percent_si,'.')
+
+title('Atomic % Si and B/C Ratio Over the EDS Region')
 xlabel('Position (pixel)')
 ylabel('B/C Ratio')
+legend('B/C','Si')
