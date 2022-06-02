@@ -95,53 +95,23 @@ y_text = '\textbf{Intensity}';
 
 %% Baseline Subtraction
 l = length(Intensity);
-lp = ceil(0.5*l);
 
-initial_Spectrum = [ones(lp,1) * Intensity(1); Intensity; ones(lp,1) * Intensity(l)];
+% poly_degree = 6;
+% fit = polyfit((1:numel(Intensity)),Intensity, poly_degree);          
+% baseline_temp =(polyval(fit,1:numel(Intensity)));
+% signal_new = Intensity;
+% signal_new(signal_new>baseline_temp) = baseline_temp((signal_new>baseline_temp));
+% poly_degree = 11;
+% fit = polyfit((1:numel(Intensity)),signal_new, poly_degree);          
+% baseline =(polyval(fit,1:numel(signal_new)));
 
-l2 = length(initial_Spectrum);
-S = initial_Spectrum;
-n = 1;
-flag = 0;
+baseline = baselinefit(Intensity');
 
-while flag == 0
-    n = n + 2;
-    i = (n-1)/2;
+figure()
+plot(Wavenumber, baseline)
 
-    stripping = 0;
-
-    y = sgolayfilt(S,0,n);
-
-    m = length(S);
-
-    Baseline = zeros(m,1);
-
-    for i = 1:1:m
-        if S(i) > y(i)
-            stripping = 1;
-            Baseline(i) = y(i);
-        else
-            Baseline(i) = S(i);
-        end
-    end
-
-    A(i) = trapz(S-Baseline);
-
-    Stripped_Spectrum{i} = Baseline;
-
-    S = Baseline;
-
-    if i > 3
-        if A(i-1) < A(i-2) && A(i-1) < A(i)
-            i_min = i-1;
-            flag = 1;
-        end
-    end
-end
-
-Base = Stripped_Spectrum{i_min};
-Corrected_Spectrum = initial_Spectrum - Base; Corrected_Spectrum = Corrected_Spectrum(lp+1:lp+l);
-Base = Base(lp+1:lp+l);
+%%
+Corrected_Spectrum = Intensity - baseline';
 
 Norm = normalize(Corrected_Spectrum,1,'range');
 

@@ -1,24 +1,46 @@
-% Kent Christian 4/28/22
-% Select B, C, and Si maps from EDS saved as .csv files.
-% Estimates the true At.% of these elements based on a standard calibration
-
 close all; clear all; clc;
 
-% Parameters that can be changed
-% ======================================
-% 2 scaling factor functions are used to adjust intensity for C and Si
-% based on B intensity
-% each of the 2 scaling factors has 2 fitting parameters (a and m)
-% cb_scaling_factor = a*exp(m .* cb_intensity_ratio);
-cb_a = 0.83;    cb_m = 0.75;
-sb_a = 0.63;    sb_m = -0.45;
+SEM = 'Gemini';
+
+if strcmp(SEM,'Gemini')
+    cb_a = 0.83;    cb_m = 0.75;
+    sb_a = 0.63;    sb_m = -0.45;
+elseif strcmp(SEM,'Sigma')
+    cb_a = 0.83;    cb_m = 0.75;
+    sb_a = 0.63;    sb_m = -0.45;
+end
+
+full_map = 1;
+
+figure()
+hold on
+imshow(data)
+
+if full_map == 1
+    [x_coord, y_coord] = ginput(2);
+    
+    x1 = x_coord(1); x2 = x_coord(2);
+    y1 = y_coord(1); y2 = y_coord(2);
+    
+    % Determine corner and dimensions
+    x = min(x1, x2);
+    y = min(y1, y2);
+    w = abs(x2 - x1);
+    h = abs(y2 - y1);
+    
+    % Plot rectangle on top of image
+    rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 2)
+
+    % Store values
+    % Start is bottom left and end is top right
+    xmin = floor(x); xmax = floor(x + w);
+    ymin = floor(y); ymax = floor(y + h);
+end
 
 % set the pixel bounds of the region we want to look at
 % xmin = 300; xmax = 475;
 % ymin = 570; ymax = 670;
-full_map = 1;
-xmin = 408; xmax = 1024;
-ymin = 1; ymax = 324;
+
 % ======================================
 
 %% ask user to locate the 3 .csv data files

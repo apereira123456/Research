@@ -93,18 +93,7 @@ title_text = '\textbf{B$_4$C Spectrum}';
 x_text = '\textbf{Raman Shift (cm$^{-1}$)}';
 y_text = '\textbf{Intensity}';
 
-[Base, Corrected_Spectrum] = baseline(Intensity);
-Norm = normalize(Corrected_Spectrum,1,'range');
-
-%     %% Baseline Subtraction 
-%     [Cp,Sl,Ic] = ischange(Intensity,'linear');                          % Detect Changes, Calculates Slopes (& Intercepts)
-%     [Cts,Edg,Bin] = histcounts(Sl, 10);                                 % Histogram Of Slopes
-%     [Max,Binmax] = max(Cts);                                            % Find Largest Bin
-%     LinearRegion = (Bin==Binmax);                                       % Logical Vector Of Values Corresponding To Largest Number Of Slopes
-%     B = polyfit(Wavenumber(LinearRegion), Intensity(LinearRegion), 1);  % Linear Fit
-%     L = polyval(B, Wavenumber);                                         % Evaluate
-%     yc = Intensity - L; 
-%     Norm = normalize(yc,1,'range');
+Norm = normalize(Intensity,1,'range');
 
 %% 2D Plot
 figure()

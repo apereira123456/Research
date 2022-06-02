@@ -1,17 +1,23 @@
 close all; clear all; clc;
 
-% Parameters that can be changed
-% ======================================
-% 2 scaling factor functions are used to adjust intensity for C and Si
-% based on B intensity
-% each of the 2 scaling factors has 2 fitting parameters (a and m)
-% cb_scaling_factor = a*exp(m .* cb_intensity_ratio);
-cb_a = 0.83;    cb_m = 0.75;
-sb_a = 0.63;    sb_m = -0.45;
-
+% Setup Parameters
 go_again = 'Y';
 n = 0;
 same_sample = 0;
+
+%% Specify scaling factors depending on SEM
+SEM = 'Gemini';
+
+if strcmp(SEM,'Gemini')
+    cb_a = 0.83;    cb_m = 0.75;
+    sb_a = 0.63;    sb_m = -0.45;
+elseif strcmp(SEM,'Sigma')
+    cb_a = 0.83;    cb_m = 0.75;
+    sb_a = 0.63;    sb_m = -0.45;
+else
+    fprintf('You must specify the SEM')
+    go_again = 'N';
+end
 
 while go_again == 'Y'
     %% Specify sheetname
@@ -96,7 +102,8 @@ while go_again == 'Y'
     
         x1 = x_coord(1); x2 = x_coord(2);
         y1 = y_coord(1); y2 = y_coord(2);
-    
+        
+        % Determine corner and dimensions
         x = min(x1, x2);
         y = min(y1, y2);
         w = abs(x2 - x1);
