@@ -46,6 +46,8 @@ if full_map == 1
     h = ymax - ymin + 1;
 
     rectangle('Position', [xmin ymin w h], 'EdgeColor', 'r', 'LineWidth', 2)
+
+    delta = w;
 else
     [x_coord, y_coord] = ginput(2);
     
@@ -65,12 +67,12 @@ else
     % Start is bottom left and end is top right
     xmin = floor(x); xmax = floor(x + w);
     ymin = floor(y); ymax = floor(y + h);
-    w = xmax - xmin + 1;
+    delta = xmax - xmin + 1;
 end
 
-[region_b_counts, region_c_counts, region_si_counts] = deal(zeros(1,w));
+[region_b_counts, region_c_counts, region_si_counts] = deal(zeros(1,delta));
 
-for i = 1:w
+for i = 1:delta
     region_b_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
     region_c_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
     region_si_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 3), 'all');
@@ -126,7 +128,46 @@ fprintf('Average values over the region:\n')
 fprintf('Si: %0.2f at.%%\n',avg_at_percent_si)
 fprintf('B/C: %0.2f\n',avg_b_to_c_ratio)
 
-% plot the line averaged atomic percents over the length of the region
+%% Individual Plots
+interval = xmin:xmax;
+
+subplot(number_of_files, 2, 1)
+imshow(data(:,:,1))
+colormap(summer)
+title(filename{1})
+
+rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
+
+subplot(number_of_files, 2, 2)
+plot(interval, region_b_counts, '.')
+title(strcat(filename{1},' -',' Line Averaged Intensity '))
+xline(xmin); xline(xmax);
+
+subplot(number_of_files, 2, 3)
+imshow(data(:,:,2))
+colormap(summer)
+title(filename{2})
+
+rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
+
+subplot(number_of_files, 2, 4)
+plot(interval, region_c_counts, '.')
+title(strcat(filename{2},' -',' Line Averaged Intensity '))
+xline(xmin); xline(xmax);
+
+subplot(number_of_files, 2, 5)
+imshow(data(:,:,3))
+colormap(summer)
+title(filename{3})
+
+rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
+
+subplot(number_of_files, 2, 6)
+plot(interval, region_si_counts, '.')
+title(strcat(filename{3},' -',' Line Averaged Intensity '))
+xline(xmin); xline(xmax);
+
+%% Plot the line averaged atomic percents over the length of the region
 figure()
 hold on
 plot(at_percent_b,'.')
@@ -140,10 +181,15 @@ legend('B','C','Si')
 
 figure()
 hold on
-plot(b_to_c_ratio,'.')
+
+yyaxis left
 plot(at_percent_si,'.')
+ylabel('Atomic % Si')
+
+yyaxis right
+plot(b_to_c_ratio,'.')
+ylabel('B/C Ratio')
 
 title('Atomic % Si and B/C Ratio Over the EDS Region')
 xlabel('Position (pixel)')
-ylabel('B/C Ratio')
-legend('B/C','Si')
+legend('Si','B/C')
