@@ -72,7 +72,7 @@ while go_again == 'Y'
     excel_filename = 'EDS Grain Analysis.xlsx';
     full_excel_filename = fullfile(write_path, excel_filename);
     
-    %% Plot Data
+    %% Read Data
     map_size = size(readmatrix(strcat(path,filename{1})));
     data = zeros(map_size(1),map_size(2),number_of_files);
 
