@@ -71,8 +71,11 @@ else
     image = imread(image_name);
     
     %% Coordinate selection prompt
-    figure(), imshow(image)
+    figure()
+    hold on
+    imshow(image)
     [x_coord, y_coord] = ginput(2);
+    line(x_coord, y_coord, 'Color', 'r', 'LineWidth', 2)
 
     % Line Intersections
     % Determine image size and generate scale factor
@@ -132,14 +135,14 @@ else
     a = [x_pos(1), x_pos(2)];
     b = [y_pos(1), y_pos(2)];
 
-    % Draw line and grid
-    figure()
-    plot(a,b)
-    xlim([0 x_size-1])
-    ylim([0 y_size-1])
-    set(gca,'xtick',0:1:x_size-1)
-    set(gca,'ytick',0:1:y_size-1)
-    grid on
+%     % Draw line and grid
+%     figure()
+%     plot(a, b, 'r', 'LineWidth', 2)
+%     xlim([0 x_size-1])
+%     ylim([0 y_size-1])
+%     set(gca,'xtick',0:1:x_size-1)
+%     set(gca,'ytick',0:1:y_size-1)
+%     grid on
 end
 
 %% Convert raw data to plottable format

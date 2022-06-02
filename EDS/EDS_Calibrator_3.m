@@ -22,7 +22,7 @@ ymin = 1; ymax = 324;
 % ======================================
 
 %% ask user to locate the 3 .csv data files
-[filename, path] = uigetfile('*','Select EDS data files (.cvs)','MultiSelect','on');
+[filename, path] = uigetfile('*.csv','Select EDS data files','MultiSelect','on');
 number_of_files = length(filename);
 
 %% iterate over all files chosen
