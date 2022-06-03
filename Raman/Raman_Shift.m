@@ -3,10 +3,11 @@ close all; clear all; clc;
 
 %% Setup Parameters
 % Step size in microns
-step = 1;
+step = 5;
 
 % Origin
-origin_index = 800;
+origin_index = 967;
+% origin_index = 800;
 
 %% User Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
@@ -197,8 +198,8 @@ while check
 end
 
 %% Graph Labels
-title_text = '\textbf{Silicon Carbide - 960 cm$^{-1}$ Peak Shift}';
-subtitle_text = '(Adjacent to Undoped Boron Carbide)';
+title_text = '\textbf{Doped Boron Carbide - 1080 cm$^{-1}$ Peak Shift}';
+%subtitle_text = '(Adjacent to Undoped Boron Carbide)';
 x_text = '\textbf{Distance from Interface ($\mu$m)}';
 y_text = '\textbf{Raman Shift (cm$^{-1}$)}';
 
@@ -219,8 +220,10 @@ title(title_text, 'interpreter', 'latex')
 xlabel(x_text, 'interpreter', 'latex')
 ylabel(y_text, 'interpreter', 'latex')
 
-moving_avg = movmean(peak_loc,151);
-moving_std = movstd(peak_loc,151);
+interval = 51;
+
+moving_avg = movmean(peak_loc,interval);
+moving_std = movstd(peak_loc,interval);
 
 top = moving_avg + moving_std;
 bottom = moving_avg - moving_std;

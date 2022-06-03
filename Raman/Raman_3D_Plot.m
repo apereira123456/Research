@@ -3,7 +3,7 @@ close all; clear all; clc;
 
 %% Setup Parameters
 % Step size in microns
-step = 1;
+step = 5;
 
 % Origin
 origin_index = 800;
@@ -232,7 +232,7 @@ min_intensity = low;
 max_intensity = high;
 most_often = mode(Norm,1);
 ctr_intensity = most_often;
-scaling_factor = 2;
+scaling_factor = 4;
 
 % Create color map with interpolated values
 x = 1:length(cMap);
@@ -251,7 +251,7 @@ colormap(norm_map)
 surface = mesh(X(disp_range,:), Z(disp_range,:), Norm);
 surface.FaceColor = 'interp';
 surface.EdgeColor = 'white';
-surface.EdgeAlpha = '0.3';
+surface.EdgeAlpha = '0.01';
 title(title_text, 'interpreter', 'latex')
 xlabel(x_text, 'interpreter', 'latex')
 ylabel(y_text, 'interpreter', 'latex')
