@@ -62,9 +62,9 @@ function Raman_Interactive_2D_Plot
     fig.Position = [x y w h];
     fig.Resize = 0;
 
-    txt = uicontrol(fig, 'Style', 'text');
-    txt.Position = [0.9*w 0.5*h 0.08*w 0.1*h];
-    txt.String = {'Index=1', 'I=1; J=1'};
+    txt = uitextarea(fig);
+    txt.Position = [0.9*w 0.5*h 0.06*w 0.05*h];
+    txt.Value = {'Index=1', 'I=1; J=1'};
 
     sld = uislider(fig, 'ValueChangingFcn', @(sld,event) sliderMoving(event,sld));
     sld.Position = [0.1*w 0.1*h 0.8*w 0.1*h];
@@ -103,7 +103,7 @@ function Raman_Interactive_2D_Plot
         J = num2str(j);
         IJ = strcat('I= ', I, '; J= ', J);
 
-        txt.String = {Index, IJ};
+        txt.Value = {Index, IJ};
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
@@ -112,7 +112,7 @@ function Raman_Interactive_2D_Plot
     end
 
     function one_up(src,~)
-        index = sscanf(txt.String{1}, 'Index=%d');
+        index = sscanf(txt.Value{1}, 'Index=%d');
         if index < ij
             index = index + 1;
         end
@@ -130,7 +130,7 @@ function Raman_Interactive_2D_Plot
         J = num2str(j);
         IJ = strcat('I= ', I, '; J= ', J);
 
-        txt.String = {Index, IJ};
+        txt.Value = {Index, IJ};
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
@@ -139,7 +139,7 @@ function Raman_Interactive_2D_Plot
     end
 
     function one_down(src,~)
-        index = sscanf(txt.String{1}, 'Index=%d');
+        index = sscanf(txt.Value{1}, 'Index=%d');
         if index > 1
             index = index - 1;
         end
@@ -157,7 +157,7 @@ function Raman_Interactive_2D_Plot
         J = num2str(j);
         IJ = strcat('I= ', I, '; J= ', J);
 
-        txt.String = {Index, IJ};
+        txt.Value = {Index, IJ};
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
