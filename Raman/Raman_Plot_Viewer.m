@@ -2,7 +2,7 @@ function Raman_Plot_Viewer
     %% Clear
     close all; clear all; clc;
 
-    %% User Data Selection Prompt
+    %% Data Selection Prompt
     [file, path] = uigetfile({'*.txt'});
     data_name = fullfile(path, file);
     data = table2array(readtable(data_name));
@@ -70,20 +70,24 @@ function Raman_Plot_Viewer
     warning('off',id)
 
     sld = uislider(fig, 'ValueChangingFcn', @(sld,event) sliderMoving(event,sld));
-    sld.Position = [0.1*w 0.1*h 0.8*w 0.1*h];
+    sld.Position = [0.1*w 0.1*h 0.8*w 0.05*h];
     sld.Value = 1;
     sld.Limits = [1 ij];
     
     btn_up = uibutton(fig, 'ButtonPushedFcn', @one_up);
-    btn_up.Position = [0.02*w 0.55*h 0.07*w 0.05*h];
+    btn_up.Position = [0.01*w 0.55*h 0.08*w 0.05*h];
     btn_up.Text = 'One Up';
 
     btn_down = uibutton(fig, 'ButtonPushedFcn', @one_down);
-    btn_down.Position = [0.02*w 0.45*h 0.07*w 0.05*h];
+    btn_down.Position = [0.01*w 0.45*h 0.08*w 0.05*h];
     btn_down.Text = 'One Down';
+
+    btn_save = uibutton(fig, 'ButtonPushedFcn', @save_fig);
+    btn_save.Position = [0.01*w 0.1*h 0.08*w 0.05*h];
+    btn_save.Text = 'Save Figure';
     
     ax = uiaxes(fig);
-    ax.Position = [0.1*w 0.2*h 0.8*w 0.75*h];
+    ax.Position = [0.1*w 0.15*h 0.8*w 0.8*h];
     plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
     
     title(ax, title_text, 'interpreter', 'latex', 'FontSize', 18)
@@ -163,5 +167,9 @@ function Raman_Plot_Viewer
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
         plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
+    end
+
+    function save_fig(src,~)
+        exportgraphics(ax,fullfile(path,'Raman_Plot.png'),'Resolution',300)
     end
 end
