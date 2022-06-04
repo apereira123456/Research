@@ -2,9 +2,6 @@ function Raman_Plot_Viewer
     %% Clear
     close all; clear all; clc;
 
-    % Normalize data: 1 = yes or 0 = no
-    n = 1;
-
     %% User Data Selection Prompt
     [file, path] = uigetfile({'*.txt'});
     data_name = fullfile(path, file);
@@ -22,19 +19,14 @@ function Raman_Plot_Viewer
     
     %% Convert raw data to plottable format
     sorted_data = cell(x_size,y_size,2);
-    sorted_data(:,:,1) = mat2cell(data(1:s_size,3),s_size,1); 
+    sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1); 
     
     for j = 1:y_size
         for i = 1:x_size
             a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
             b = i*s_size + (j-1)*x_size*s_size;
-    
-            if n == 1 
-                norm = normalize(data(a:b,4),1,'range');
-                sorted_data(i,j,2) = mat2cell(norm,s_size,1);
-            else
-                sorted_data(i,j,2) = mat2cell(data(a:b,4),s_size,1);
-            end
+
+            sorted_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),s_size,1);
         end
     end
     
@@ -73,6 +65,10 @@ function Raman_Plot_Viewer
     txt.Position = [0.9*w 0.5*h 0.07*w 0.05*h];
     txt.Value = {'Index=1', 'I=1; J=1'};
 
+    % Suppress warning for fixed slider height
+    id = 'MATLAB:ui:Slider:fixedHeight';
+    warning('off',id)
+
     sld = uislider(fig, 'ValueChangingFcn', @(sld,event) sliderMoving(event,sld));
     sld.Position = [0.1*w 0.1*h 0.8*w 0.1*h];
     sld.Value = 1;
@@ -94,7 +90,7 @@ function Raman_Plot_Viewer
     xlabel(ax, x_text, 'interpreter', 'latex', 'FontSize', 14)
     ylabel(ax, y_text, 'interpreter', 'latex', 'FontSize', 14)
     
-    ax.XLim = [Wavenumber(end) Wavenumber(1)];
+    ax.XLim = [Wavenumber(1) Wavenumber(end)];
     ax.YLim = [0 1];
     
     function sliderMoving(event,~)
