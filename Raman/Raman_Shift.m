@@ -6,7 +6,7 @@ close all; clear all; clc;
 step = 1;
 
 % Origin
-origin_index = 800;
+origin_index = 801;
 
 % Interval for moving average
 interval = 51;
@@ -29,9 +29,34 @@ data = table2array(readtable(data_name));
 [y_size, ~] = size(y);
 [s_size, ~] = size(s);
 
+ij = x_size*y_size;
+
+%% Specify analysis region
+% Prompt user to select csv file from Raman Map to Line program
+if x_size ~= 1 && y_size ~= 1
+    [file, path] = uigetfile({'*.csv'},'Select index file',path);
+    index_name = fullfile(path, file);
+    index = table2array(readtable(index_name));
+    index = index';
+% Prompt user to specify start and end indices for line scan
+else
+    prompt = "Enter start index:";
+    a = input(prompt);
+
+    prompt = "Enter end index:";
+    b = input(prompt);
+
+    if a < b
+        index = a:b;
+    else
+        index = b:a;
+    end
+end
+
 %% Convert raw data to plottable format
 sorted_data = cell(x_size,y_size,2);
-sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1); 
+sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1);
+% sorted_data(:,:,1) = data(s_size:-1:1,3); 
 
 for j = 1:y_size
     for i = 1:x_size
@@ -42,62 +67,15 @@ for j = 1:y_size
     end
 end
 
-% Line Scan 
-% Can only parse vertical or horizontal lines
-if x_size == 1 || y_size == 1
-    %% Location Selection Prompt
-    while check
-        prompt = "Enter location start value:";
-        loc_start = input(prompt);
+Wavenumber = sorted_data{1,1,1};
 
-        % Use the full line if no input is given
-        if isempty(loc_start)
-            loc_range = 1:(x_size + y_size - 2);
-            check = 0;
-
-        else
-            prompt = "Enter location end value:";
-            loc_end = input(prompt);
-        
-            loc_range = loc_start:loc_end;
-            size(loc_range)
-
-            % Check for valid range
-            if loc_start >= 0 && loc_end <= x_size + y_size - 2 && loc_start <= loc_end
-                check = 0;
-
-            else
-                disp('Invalid input.')
-            end
-        end
-    end
-
-    j = 1:y_size;
-    i = ones(size(j,1));
-
-%     i = 1:x_size;
-%     j = ones(size(j,1));
-
-%     i = zeros(length(loc_range),1);
-%     j = loc_range';
-
-% Map Scan
-else
-    
-end
-
-% X(:,u) = Wavenumber;
-% Y(:,u) = Intensity;
-
-%% Display range prompt
+%% Display Range Prompt
 start_wavenumber = Wavenumber(1,1);
 end_wavenumber = Wavenumber(end,1);
 
 fprintf('Start Wavenumber: %.2f \n',start_wavenumber)
 fprintf('End Wavenumber: %.2f \n',end_wavenumber)
-
-check = 1;
-
+    
 while check
     prompt = "Enter wavenumber start value:";
     a = input(prompt);
@@ -109,7 +87,7 @@ while check
         disp_range = start_index:end_index;
         check = 0;
     
-    % Otherwise find the index of the closest wavenumber to the input
+    % Otherwise find the index of the closest wavenumber
     else
         [~,start_index] = min(abs(Wavenumber - a));
         prompt = "Enter wavenumber end value:";
@@ -138,27 +116,44 @@ x_text = '\textbf{Distance from Interface ($\mu$m)}';
 y_text = '\textbf{Raman Shift (cm$^{-1}$)}';
 
 %% Peak Shift
-[M, I] = max(Y(disp_range,:), [], 1);
-peak_loc = X(disp_start + I);
+peak_loc = zeros(1,ij);
 
-if x_size == 1 || y_size == 1
-    Distance = step * (loc_range - origin_index);
+for n = index
+    i = mod(n, x_size);
+    if i == 0
+        i = x_size;
+    end
+    j = ceil(n/x_size);
+
+    [M, I] = max(sorted_data{i,j,2}(disp_range,1), [], 1);
+    peak_loc(1,n) = sorted_data{i,j,1}(start_index + I - 1,1);
+end
+
+% Map Scans: Correct distance for lines on an anlge
+if x_size ~= 1 && y_size ~=1
+    x_coord = [mod(index(1), x_size), mod(index(end), x_size)];
+    y_coord = [ceil(index(1)/x_size), ceil(index(end)/x_size)];
+    
+    correction = x_coord == 0;
+    x_coord(correction) = x_size;
+
+    line_length = step * sqrt((x_coord(end) - x_coord(1))^2 + (y_coord(end) - y_coord(1))^2);
+    
+    Distance = linspace(1,line_length,length(index));
+
+% Line Scans: Adjust distance based on origin
 else
-    Range = 0:length(loc_range) - 1;
-    Distance = step * Range;    
+    Distance = step * (index - origin_index);
 end
 
 figure()
-plot(Distance, peak_loc, 'o')
+plot(Distance, peak_loc(1,index), 'o')
 title(title_text, 'interpreter', 'latex')
 xlabel(x_text, 'interpreter', 'latex')
 ylabel(y_text, 'interpreter', 'latex')
+xlim([Distance(1) Distance(end)])
 
-moving_avg = movmean(peak_loc,interval);
-moving_std = movstd(peak_loc,interval);
-
-top = moving_avg + moving_std;
-bottom = moving_avg - moving_std;
+moving_avg = movmean(peak_loc(1,index),interval);
 
 figure()
 hold on
@@ -167,9 +162,15 @@ title(title_text, 'interpreter', 'latex', 'FontSize', 18)
 %subtitle(subtitle_text, 'interpreter', 'latex', 'FontSize', 14)
 xlabel(x_text, 'interpreter', 'latex', 'FontSize', 14)
 ylabel(y_text, 'interpreter', 'latex', 'FontSize', 14)
+xlim([Distance(1) Distance(end)])
 
-x_std = [Distance, fliplr(Distance)];
-y_std = [top, fliplr(bottom)];
-
-% Standard Deviation
-%     fill(x_std, y_std, [0.5 0.5 0.5], 'FaceAlpha', 0.3);
+%% Standard Deviation
+% moving_std = movstd(peak_loc(1,index),interval);
+% 
+% top = moving_avg + moving_std;
+% bottom = moving_avg - moving_std;
+% 
+% x_std = [Distance, fliplr(Distance)];
+% y_std = [top, fliplr(bottom)];
+% 
+% fill(x_std, y_std, [0.5 0.5 0.5], 'FaceAlpha', 0.3);

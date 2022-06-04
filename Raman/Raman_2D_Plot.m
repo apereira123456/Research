@@ -2,9 +2,8 @@
 close all; clear all; clc;
 
 %% Setup Parameters
-% i corresponds to x and j corresponds to y
-i = 1;
-j = 900;
+% Specify index of data you wish to plot
+index = 800;
 
 %
 check = 1;
@@ -32,6 +31,12 @@ else
     [s_size, ~] = size(s);
     
     %% Extract Plot from Data
+    i = mod(index, x_size);
+    if i == 0
+        i = x_size;
+    end
+    j = ceil(index/x_size);
+
     a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
     b = i*s_size + (j-1)*x_size*s_size;
 

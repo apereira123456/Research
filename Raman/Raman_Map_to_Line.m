@@ -1,6 +1,9 @@
+%% Clear
+close all; clear all; clc;
+
 %% Data Selection Prompt
-[file, path] = uigetfile({'*.txt'});
-data_name = fullfile(path, file);
+[data_file, data_path] = uigetfile({'*.txt'}, 'Select map data file');
+data_name = fullfile(data_path, data_file);
 data = table2array(readtable(data_name));
 
 %% Logic for Scans of Different Dimensions
@@ -14,26 +17,32 @@ data = table2array(readtable(data_name));
 [s_size, ~] = size(s);
 
 %% Image selection prompt
-[file, path] = uigetfile({'*.png;*.jpg;*.jpeg;*.tif'});
-image_name = fullfile(path, file);
+[image_file, image_path] = uigetfile({'*.tif';'*.tiff';'*.png';'lpg';'*.jpeg'},'Select image of map region',data_path);
+image_name = fullfile(image_path, image_file);
 image = imread(image_name);
 
 %% Coordinate selection prompt
-figure(), imshow(image)
+figure()
+hold on
+imshow(image)
 [x_coord, y_coord] = ginput(2);
+line(x_coord, y_coord, 'LineWidth', 2)
 
+%%
 % Line Intersections
 % Determine image size and generate scale factor
 [y_pixels, x_pixels, ~] = size(image);
-scale = [x_pixels/(x_size-1), y_pixels/(y_size-1)];
+scale = [x_pixels/(x_size), y_pixels/(y_size)];
 
 % Scale x-values and determine min/max
 x_pos = x_coord / scale(1);
 x_min = min(x_pos, [], 1);
 x_max = max(x_pos, [], 1);
 
-% Scale y-values and determine min/max
+% This step may not be necessary because the y-axis on the raman is flipped?
 y_coord = y_pixels - y_coord;
+
+% Scale y-values and determine min/max
 y_pos = y_coord / scale(2);
 y_min = min(y_pos, [], 1);
 y_max = max(y_pos, [], 1);
@@ -61,10 +70,10 @@ else
 end
 
 % Remove values that lie outside the grid boundary
-ex_bdry = find(hv_int(:,1) < floor(x_min) | hv_int(:,1) < 0);
-ex_bdry = [find(hv_int(:,1) > ceil(x_max) | hv_int(:,1) > x_size - 1); ex_bdry];
-ex_bdry = [find(hv_int(:,2) < y_min | hv_int(:,2) < 0 ); ex_bdry];
-ex_bdry = [find(hv_int(:,2) > y_max | hv_int(:,2) > y_size - 1); ex_bdry];
+ex_bdry = find(hv_int(:,1) < floor(x_min) | hv_int(:,1) < 1);
+ex_bdry = [find(hv_int(:,1) > ceil(x_max) | hv_int(:,1) > x_size); ex_bdry];
+ex_bdry = [find(hv_int(:,2) < y_min | hv_int(:,2) < 1 ); ex_bdry];
+ex_bdry = [find(hv_int(:,2) > y_max | hv_int(:,2) > y_size); ex_bdry];
 hv_int(ex_bdry,:) = [];
 
 % Remove duplicate values
@@ -75,16 +84,21 @@ else
     srtd = unique(hv_int,'rows');
 end
 
-i = srtd(:,1);
-j = srtd(:,2);
+%% Write index values to csv file
+index = srtd(:,1) + x_size * (srtd(:,2) - 1);
+writematrix(index, fullfile(data_path,'Index.csv'));
+
+% i = srtd(:,1);
+% j = srtd(:,2);
+
 a = [x_pos(1), x_pos(2)];
 b = [y_pos(1), y_pos(2)];
 
-% Draw line and grid
+%% Draw line and grid
 figure()
 plot(a,b)
-xlim([0 x_size-1])
-ylim([0 y_size-1])
-set(gca,'xtick',0:1:x_size-1)
-set(gca,'ytick',0:1:y_size-1)
+xlim([1 x_size])
+ylim([1 y_size])
+set(gca,'xtick',1:1:x_size)
+set(gca,'ytick',1:1:y_size)
 grid on
