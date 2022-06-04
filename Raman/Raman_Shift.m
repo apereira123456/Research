@@ -3,10 +3,10 @@ close all; clear all; clc;
 
 %% Setup Parameters
 % Step size in microns
-step = 5;
+step = 1;
 
 % Origin
-origin_index = 967;
+origin_index = 800;
 % origin_index = 800;
 
 %% User Data Selection Prompt

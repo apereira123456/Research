@@ -5,13 +5,14 @@ full_map = 0;
 
 %% Specify scaling factors depending on SEM
 SEM = 'Gemini';
+% SEM = 'Sigma';
 
 if strcmp(SEM,'Gemini')
-    cb_a = 0.83;    cb_m = 0.75;
-    sb_a = 0.63;    sb_m = -0.45;
+    cb_b = 0.83;    cb_m = 0.75;
+    sb_b = 0.63;    sb_m = -0.45;
 elseif strcmp(SEM,'Sigma')
-    cb_a = 0.83;    cb_m = 0.75;
-    sb_a = 0.63;    sb_m = -0.45;
+    cb_b = 0.5;    cb_m = 3.5;
+    sb_b = 0.04;    sb_m = 30;
 end
 
 %% Prompt user to select the 3 data files
@@ -39,15 +40,17 @@ imshow(data)
 
 %% Specify analysis region
 if full_map == 1
+    x = 1; y = 1;
+
     xmin = 1; xmax = data_x_size;
     ymin = 1; ymax = data_y_size;
 
-    w = xmax - xmin + 1;
-    h = ymax - ymin + 1;
+    w = xmax - xmin;
+    h = ymax - ymin;
 
-    rectangle('Position', [xmin ymin w h], 'EdgeColor', 'r', 'LineWidth', 2)
+    rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 2)
 
-    delta = w;
+    delta = w + 1;
 else
     [x_coord, y_coord] = ginput(2);
     
@@ -73,6 +76,7 @@ end
 [region_b_counts, region_c_counts, region_si_counts] = deal(zeros(1,delta));
 
 for i = 1:delta
+    
     region_b_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
     region_c_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
     region_si_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 3), 'all');
@@ -82,6 +86,7 @@ end
 % compute elemental intensity ratios to be used in scaling factor calcs
 cb_intensity_ratio = region_c_counts ./ region_b_counts;
 sib_intensity_ratio = region_si_counts ./ region_b_counts;
+max(sib_intensity_ratio)
 
 % calculate scaling factors for each point along line averaged intensity
 cb_scaling_factor = 0.83*exp(0.75 .* cb_intensity_ratio);

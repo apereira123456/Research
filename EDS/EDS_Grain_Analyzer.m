@@ -9,11 +9,11 @@ same_sample = 0;
 SEM = 'Gemini';
 
 if strcmp(SEM,'Gemini')
-    cb_a = 0.83;    cb_m = 0.75;
-    sb_a = 0.63;    sb_m = -0.45;
+    cb_b = 0.83;    cb_m = 0.75;
+    sb_b = 0.63;    sb_m = -0.45;
 elseif strcmp(SEM,'Sigma')
-    cb_a = 0.83;    cb_m = 0.75;
-    sb_a = 0.63;    sb_m = -0.45;
+    cb_b = 0.83;    cb_m = 0.75;
+    sb_b = 0.63;    sb_m = -0.45;
 else
     fprintf('You must specify the SEM')
     go_again = 'N';

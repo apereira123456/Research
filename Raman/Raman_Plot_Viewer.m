@@ -1,6 +1,9 @@
-function Raman_Interactive_2D_Plot
+function Raman_Plot_Viewer
     %% Clear
     close all; clear all; clc;
+
+    % Normalize data: 1 = yes or 0 = no
+    n = 1;
 
     %% User Data Selection Prompt
     [file, path] = uigetfile({'*.txt'});
@@ -26,12 +29,17 @@ function Raman_Interactive_2D_Plot
             a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
             b = i*s_size + (j-1)*x_size*s_size;
     
-            sorted_data(i,j,2) = mat2cell(data(a:b,4),s_size,1);
+            if n == 1 
+                norm = normalize(data(a:b,4),1,'range');
+                sorted_data(i,j,2) = mat2cell(norm,s_size,1);
+            else
+                sorted_data(i,j,2) = mat2cell(data(a:b,4),s_size,1);
+            end
         end
     end
     
     %% Graph Labels
-    title_text = '\textbf{B$_4$C Spectrum}';
+    title_text = '\textbf{Raman Viewer}';
     x_text = '\textbf{Raman Shift (cm$^{-1}$)}';
     y_text = '\textbf{Intensity}';
     
@@ -47,7 +55,6 @@ function Raman_Interactive_2D_Plot
     %% Start Plot
     Wavenumber = sorted_data{1,1,1};
     Intensity = sorted_data{1,1,2};
-    Norm = normalize(Intensity,1,'range');
     
     %% 2D Plot
     set(0,'units','pixels');
@@ -63,7 +70,7 @@ function Raman_Interactive_2D_Plot
     fig.Resize = 0;
 
     txt = uitextarea(fig);
-    txt.Position = [0.9*w 0.5*h 0.06*w 0.05*h];
+    txt.Position = [0.9*w 0.5*h 0.07*w 0.05*h];
     txt.Value = {'Index=1', 'I=1; J=1'};
 
     sld = uislider(fig, 'ValueChangingFcn', @(sld,event) sliderMoving(event,sld));
@@ -81,7 +88,7 @@ function Raman_Interactive_2D_Plot
     
     ax = uiaxes(fig);
     ax.Position = [0.1*w 0.2*h 0.8*w 0.75*h];
-    plot(ax, Wavenumber, Norm, 'b', 'LineWidth', 2)
+    plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
     
     title(ax, title_text, 'interpreter', 'latex', 'FontSize', 18)
     xlabel(ax, x_text, 'interpreter', 'latex', 'FontSize', 14)
@@ -107,8 +114,7 @@ function Raman_Interactive_2D_Plot
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        Norm = normalize(Intensity,1,'range');
-        plot(ax, Wavenumber, Norm, 'b', 'LineWidth', 2)
+        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
     end
 
     function one_up(src,~)
@@ -134,8 +140,7 @@ function Raman_Interactive_2D_Plot
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        Norm = normalize(Intensity,1,'range');
-        plot(ax, Wavenumber, Norm, 'b', 'LineWidth', 2)
+        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
     end
 
     function one_down(src,~)
@@ -161,7 +166,6 @@ function Raman_Interactive_2D_Plot
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        Norm = normalize(Intensity,1,'range');
-        plot(ax, Wavenumber, Norm, 'b', 'LineWidth', 2)
+        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
     end
 end
