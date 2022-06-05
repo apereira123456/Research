@@ -26,7 +26,7 @@ figure()
 hold on
 imshow(image)
 [x_coord, y_coord] = ginput(2);
-line(x_coord, y_coord, 'LineWidth', 2)
+line(x_coord, y_coord, 'Color', 'r', 'LineWidth', 2)
 
 %%
 % Line Intersections
