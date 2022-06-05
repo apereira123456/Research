@@ -8,7 +8,7 @@ index = 800;
 %
 check = 1;
 
-%% User Data Selection Prompt
+%% Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
 data_name = fullfile(path, file);
 data = table2array(readtable(data_name));

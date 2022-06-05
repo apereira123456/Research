@@ -2,18 +2,16 @@
 close all; clear all; clc;
 
 %% Setup Parameters
-i = [0, 0];
-j = [0, 648];
-i_size = length(i);
+% Specify indices of data you wish to plot
+index = [802, 1601];
+
+% Specify peak position
 peak = 1091;
-range = [1050 1140];
 
-%% Graph Labels
-title_text = '\textbf{B$_4$C Spectrum}';
-x_text = '\textbf{Raman Shift (cm$^{-1}$)}';
-y_text = '\textbf{Intensity}';
+%
+check = 1;
 
-%% User Data Selection Prompt
+%% Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
 data_name = fullfile(path, file);
 data = table2array(readtable(data_name));
@@ -28,45 +26,53 @@ data = table2array(readtable(data_name));
 [s_size, ~] = size(s);
 
 %% Extract Plot from Data
-Wavenumber = zeros(s_size,1);
-Intensity = zeros(s_size,1);
+Wavenumber = zeros(s_size,2);
+Intensity = zeros(s_size,2);
 
-for u = 1:i_size
-    for v = 1:s_size
-        n = v + i(u)*s_size + j(u)*x_size*s_size;
-        Wavenumber(v,u) = data(v,3);
-        Intensity(v,u) = data(n,4);
-        v = v + 1;
+%% Extract Plot from Data
+for n = 1:2
+    i = mod(index(n), x_size);
+    if i == 0
+        i = x_size;
     end
+    j = ceil(index(n)/x_size);
+    
+    a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
+    b = i*s_size + (j-1)*x_size*s_size;
+    
+    Wavenumber(:,n) = data(s_size:-1:1,3);
+    Intensity(:,n) = normalize(data(b:-1:a,4),1,'range');
 end
 
-%% Display Range
-start_wavenumber = Wavenumber(s_size-1,1)
-end_wavenumber = Wavenumber(1,1)
-
 %% Display Range Prompt
-check = 1;
+start_wavenumber = Wavenumber(1,1);
+end_wavenumber = Wavenumber(end,1);
 
+fprintf('Start Wavenumber: %.2f \n',start_wavenumber)
+fprintf('End Wavenumber: %.2f \n',end_wavenumber)
+    
 while check
     prompt = "Enter wavenumber start value:";
     a = input(prompt);
     
     % Use the full range if no input is given
     if isempty(a)
-        disp_range = 1:s_size;
-        disp_start = 0;
+        start_index = 1;
+        end_index = s_size;
+        disp_range = start_index:end_index;
         check = 0;
-
+    
+    % Otherwise find the index of the closest wavenumber
     else
-        [~,disp_end] = min(abs(Wavenumber - a));
+        [~,start_index] = min(abs(Wavenumber(:,1) - a));
         prompt = "Enter wavenumber end value:";
         a = input(prompt);
-        [~,disp_start] = min(abs(Wavenumber - a));
+        [~,end_index] = min(abs(Wavenumber(:,1) - a));
     
-        disp_range = disp_start:disp_end;
+        disp_range = start_index:end_index;
         
         % Check for valid input
-        if disp_start > disp_end
+        if start_index > end_index
             disp('Invalid input.')
 
         elseif length(disp_range) > 1
@@ -78,31 +84,32 @@ while check
     end
 end
 
-Wavenumber = Wavenumber(disp_range,:);
-Intensity = Intensity(disp_range,:);
-Norm = normalize(Intensity,1,'range');
+%% Graph Labels
+title_text = '\textbf{B$_4$C Spectrum}';
+x_text = '\textbf{Raman Shift (cm$^{-1}$)}';
+y_text = '\textbf{Intensity}';
 
 %% 2D Plot
 figure()
 subplot(2,1,1) %subplot(rows,coloumns,current_axis)
 hold on
-plot(Wavenumber(:,1), Norm(:,1), 'b', 'LineWidth', 2)
+plot(Wavenumber(disp_range,1), Intensity(disp_range,1), 'b', 'LineWidth', 2)
 plot([peak,peak], [0,1], 'r', 'Linewidth', 2)
 
 title('\textbf{B$_4$C 1080 cm$^{-1}$ Peak}', 'interpreter', 'latex', 'FontSize', 18)
 subtitle('(Away from Interface)', 'interpreter', 'latex', 'FontSize', 14)
 ylabel(y_text, 'interpreter', 'latex', 'FontSize', 14)
-xlim(range)
+xlim([Wavenumber(start_index,1) Wavenumber(end_index,1)])
 ylim([0 1])
 
 subplot(2,1,2)
 hold on
-plot(Wavenumber(:,2), Norm(:,2), 'b', 'LineWidth', 2)
+plot(Wavenumber(disp_range,2), Intensity(disp_range,2), 'b', 'LineWidth', 2)
 plot([peak,peak], [0,1], 'r', 'Linewidth', 2)
 
 title('\textbf{B$_4$C 1080 cm$^{-1}$ Peak}', 'interpreter', 'latex', 'FontSize', 18)
 subtitle('(Near Interface)', 'interpreter', 'latex', 'FontSize', 14)
 xlabel(x_text, 'interpreter', 'latex', 'FontSize', 14)
 ylabel(y_text, 'interpreter', 'latex', 'FontSize', 14)
-xlim(range)
+xlim([Wavenumber(start_index,1) Wavenumber(end_index,1)])
 ylim([0 1])
