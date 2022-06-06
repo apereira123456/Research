@@ -5,9 +5,6 @@ close all; clear all; clc;
 % Specify index of data you wish to plot
 index = 800;
 
-%
-check = 1;
-
 %% Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
 data_name = fullfile(path, file);
@@ -45,6 +42,8 @@ else
 end
 
 %% Display Range Prompt
+check = 1;
+
 start_wavenumber = Wavenumber(1,1);
 end_wavenumber = Wavenumber(end,1);
 

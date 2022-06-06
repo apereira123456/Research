@@ -8,9 +8,6 @@ step = 5;
 % Origin
 origin_index = 800;
 
-%
-check = 1;
-
 %% User Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
 data_name = fullfile(path, file);
@@ -87,6 +84,8 @@ end
 Distance = repelem(Distance,s_size,1);
 
 %% Display Range Prompt
+check = 1;
+
 start_wavenumber = Wavenumber(1,index(1));
 end_wavenumber = Wavenumber(end,index(1));
 

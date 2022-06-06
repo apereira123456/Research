@@ -6,13 +6,13 @@ close all; clear all; clc;
 step = 1;
 
 % Origin
-origin_index = 801;
+origin_index = 961;
+%798
+% B4C after origin_index
+% SiC before origin_index
 
 % Interval for moving average
 interval = 51;
-
-%
-check = 1;
 
 %% Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
@@ -70,6 +70,8 @@ end
 Wavenumber = sorted_data{1,1,1};
 
 %% Display Range Prompt
+check = 1;
+
 start_wavenumber = Wavenumber(1,1);
 end_wavenumber = Wavenumber(end,1);
 

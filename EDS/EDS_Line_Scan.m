@@ -3,16 +3,21 @@ close all; clear all; clc;
 % Setup parameters
 full_map = 0;
 
+% Atomic masses: B, C, Si (g/mol)
+atomic_mass = [10.811, 12.011, 28.0855];
+
 %% Specify scaling factors depending on SEM
 SEM = 'Gemini';
 % SEM = 'Sigma';
 
 if strcmp(SEM,'Gemini')
-    cb_b = 0.83;    cb_m = 0.75;
-    sb_b = 0.63;    sb_m = -0.45;
+    m = [0.75, -0.45];
+    b = [0.83, 0.63];
+%     cb_b = 0.83;    cb_m = 0.75;
+%     sb_b = 0.63;    sb_m = -0.45;
 elseif strcmp(SEM,'Sigma')
-    cb_b = 0.5;    cb_m = 3.5;
-    sb_b = 0.04;    sb_m = 30;
+    m = [0.75, -0.45];
+    b = [0.83, 0.63];
 end
 
 %% Prompt user to select the 3 data files
@@ -67,7 +72,7 @@ else
     rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 2)
 
     % Store values
-    % Start is bottom left and end is top right
+    % Start is top left and end is bottom right (image origin is top left)
     xmin = floor(x); xmax = floor(x + w);
     ymin = floor(y); ymax = floor(y + h);
     delta = xmax - xmin + 1;
@@ -76,108 +81,78 @@ end
 [region_b_counts, region_c_counts, region_si_counts] = deal(zeros(1,delta));
 
 for i = 1:delta
-    
-    region_b_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
-    region_c_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
-    region_si_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 3), 'all');
+    counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
+    counts(2,i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
+    counts(3,i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
 end
 
+%     region_b_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
+%     region_c_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
+%     region_si_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 3), 'all');
+
 %% Apply the Scaling Factors
-% compute elemental intensity ratios to be used in scaling factor calcs
-cb_intensity_ratio = region_c_counts ./ region_b_counts;
-sib_intensity_ratio = region_si_counts ./ region_b_counts;
-max(sib_intensity_ratio)
+for i = 1:2
+    % compute elemental intensity ratios to be used in scaling factor calcs
+    intensity_ratio(i,:) = counts(i+1,:) ./ counts(1,:);
+    % calculate scaling factors for each point along line averaged intensity
+    scaling_factor(i,:) = b(i) * exp(m(i) .* intensity_ratio(i,:));
+    % apply scaling factors to get corrected relative intensity of each element
+    rel_intensity(i+1,:) = scaling_factor(i,:) .* intensity_ratio(i,:);
+end
 
-% calculate scaling factors for each point along line averaged intensity
-cb_scaling_factor = 0.83*exp(0.75 .* cb_intensity_ratio);
-sb_scaling_factor = 0.63*exp(-0.45 .* sib_intensity_ratio);
+rel_intensity(1,:) = ones(1,size(rel_intensity,2));
 
-% apply scaling factors to get corrected relative intensity of each element
-rel_intensity_c = cb_scaling_factor .* cb_intensity_ratio;
-rel_intensity_si = sb_scaling_factor .* sib_intensity_ratio;
-rel_intensity_b = ones(1,size(region_b_counts,2)); % B is 1 as the reference
-
-% convert corrected intensities to weight fractions
-total_intensity = rel_intensity_c + rel_intensity_si + rel_intensity_b;
-wt_fraction_c = rel_intensity_c ./ total_intensity;
-wt_fraction_si = rel_intensity_si ./ total_intensity;
-wt_fraction_b = rel_intensity_b ./ total_intensity;
-
-% atomic masses
-c_mass = 12.011; % grams/mol
-si_mass = 28.0855; % grams/mol
-b_mass = 10.811; % grams/mol
-
-% convert weight fractions to relative mol fraction
-mol_c = wt_fraction_c / c_mass;
-mol_si = wt_fraction_si / si_mass;
-mol_b = wt_fraction_b / b_mass;
+total_intensity = rel_intensity(1,:) + rel_intensity(2,:) + rel_intensity(3,:);
+for i = 1:3
+    % convert corrected intensities to weight fractions
+    wt_fraction(i,:) = rel_intensity(i,:) ./ total_intensity;
+    % convert weight fractions to relative mol fraction
+    mol(i,:) = wt_fraction(i,:) / atomic_mass(i);
+end
 
 % convert relative mol fraction to atomic percents
-total_mols = mol_c + mol_si + mol_b;
-at_percent_c = 100 * mol_c ./ total_mols;
-at_percent_si = 100 * mol_si ./ total_mols;
-at_percent_b = 100 * mol_b ./ total_mols;
-b_to_c_ratio = at_percent_b ./ at_percent_c;
+total_mols = mol(1,:) + mol(2,:) + mol(3,:);
+for i = 1:3
+    at_percent(i,:) = 100 * mol(i,:) ./ total_mols;
+end
 
-% calculate average atomic percents over the region
-avg_at_percent_c = mean(at_percent_c);
-avg_at_percent_si = mean(at_percent_si);
-avg_at_percent_b = mean(at_percent_b);
+b_to_c_ratio = at_percent(1,:) ./ at_percent(2,:);
+
+for i = 1:3
+    % calculate average atomic percents over the region
+    avg_at_percent(i) = mean(at_percent(i,:));
+end
+
 avg_b_to_c_ratio = mean(b_to_c_ratio);
 
 % print the average atomic percents
 fprintf('Average values over the region:\n')
-% fprintf('B: %0.2f %%\n',avg_at_percent_b)
-% fprintf('C: %0.2f %%\n',avg_at_percent_c)
-fprintf('Si: %0.2f at.%%\n',avg_at_percent_si)
+fprintf('Si: %0.2f at.%%\n',avg_at_percent(3))
 fprintf('B/C: %0.2f\n',avg_b_to_c_ratio)
 
 %% Individual Plots
 interval = xmin:xmax;
 
-subplot(number_of_files, 2, 1)
-imshow(data(:,:,1))
-colormap(summer)
-title(filename{1})
-
-rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
-
-subplot(number_of_files, 2, 2)
-plot(interval, region_b_counts, '.')
-title(strcat(filename{1},' -',' Line Averaged Intensity '))
-xline(xmin); xline(xmax);
-
-subplot(number_of_files, 2, 3)
-imshow(data(:,:,2))
-colormap(summer)
-title(filename{2})
-
-rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
-
-subplot(number_of_files, 2, 4)
-plot(interval, region_c_counts, '.')
-title(strcat(filename{2},' -',' Line Averaged Intensity '))
-xline(xmin); xline(xmax);
-
-subplot(number_of_files, 2, 5)
-imshow(data(:,:,3))
-colormap(summer)
-title(filename{3})
-
-rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
-
-subplot(number_of_files, 2, 6)
-plot(interval, region_si_counts, '.')
-title(strcat(filename{3},' -',' Line Averaged Intensity '))
-xline(xmin); xline(xmax);
+for i = 1:3
+    subplot(number_of_files, 2, 2*i-1)
+    imshow(data(:,:,i))
+    colormap(summer)
+    title(filename{1})
+    
+    rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
+    
+    subplot(number_of_files, 2, 2*i)
+    plot(interval, counts(i,:), '.')
+    title(strcat(filename{i},' -',' Line Averaged Intensity '))
+    xline(xmin); xline(xmax);
+end
 
 %% Plot the line averaged atomic percents over the length of the region
 figure()
 hold on
-plot(at_percent_b,'.')
-plot(at_percent_c,'.')
-plot(at_percent_si,'.')
+for i = 1:3
+    plot(at_percent(i,:),'.')
+end
 
 title('Atomic % Over the EDS Region')
 xlabel('Position (pixel)')
@@ -188,7 +163,7 @@ figure()
 hold on
 
 yyaxis left
-plot(at_percent_si,'.')
+plot(at_percent(3,:),'.')
 ylabel('Atomic % Si')
 
 yyaxis right
