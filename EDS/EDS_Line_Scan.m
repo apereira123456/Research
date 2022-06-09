@@ -1,7 +1,7 @@
 close all; clear all; clc;
 
 % Setup parameters
-full_map = 0;
+full_map = 1;
 
 % Atomic masses: B, C, Si (g/mol)
 atomic_mass = [10.811, 12.011, 28.0855];
@@ -39,7 +39,7 @@ end
 %% Display EDS Map
 figure()
 hold on
-imshow(data)
+%imshow(data)
 
 %% Specify analysis region
 if full_map == 1
@@ -47,6 +47,14 @@ if full_map == 1
 
     xmin = 1; xmax = data_x_size;
     ymin = 1; ymax = data_y_size;
+
+
+
+%     xmin = 1447; xmax = 2736;
+%     ymin = 1348; ymax = 1612;
+% 
+%     x = xmin;
+%     y = ymin;
 
     w = xmax - xmin;
     h = ymax - ymin;
@@ -76,7 +84,9 @@ else
     delta = xmax - xmin + 1;
 end
 
-counts = zeros(3,delta);
+
+[counts, intensity_ratio, scaling_factor, rel_intensity, wt_fraction, mol, at_percent] = deal(ones(3,delta));
+avg_at_percent = zeros(1,3);
 
 for i = 1:delta
     counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1));
@@ -85,18 +95,17 @@ for i = 1:delta
 end
 
 %% Apply the Scaling Factors
-for i = 1:2
+for i = 2:3
     % compute elemental intensity ratios to be used in scaling factor calcs
-    intensity_ratio(i,:) = counts(i+1,:) ./ counts(1,:);
+    intensity_ratio(i,:) = counts(i,:) ./ counts(1,:);
     % calculate scaling factors for each point along line averaged intensity
-    scaling_factor(i,:) = b(i) * exp(m(i) .* intensity_ratio(i,:));
+    scaling_factor(i,:) = b(i-1) * exp(m(i-1) .* intensity_ratio(i,:));
     % apply scaling factors to get corrected relative intensity of each element
-    rel_intensity(i+1,:) = scaling_factor(i,:) .* intensity_ratio(i,:);
+    rel_intensity(i,:) = scaling_factor(i,:) .* intensity_ratio(i,:);
 end
 
-rel_intensity(1,:) = ones(1,size(rel_intensity,2));
-
 total_intensity = rel_intensity(1,:) + rel_intensity(2,:) + rel_intensity(3,:);
+
 for i = 1:3
     % convert corrected intensities to weight fractions
     wt_fraction(i,:) = rel_intensity(i,:) ./ total_intensity;
@@ -106,11 +115,9 @@ end
 
 % convert relative mol fraction to atomic percents
 total_mols = mol(1,:) + mol(2,:) + mol(3,:);
-for i = 1:3
-    at_percent(i,:) = 100 * mol(i,:) ./ total_mols;
-end
 
 for i = 1:3
+    at_percent(i,:) = 100 * mol(i,:) ./ total_mols;
     % calculate average atomic percents over the region
     avg_at_percent(i) = mean(at_percent(i,:),2);
 end
@@ -118,9 +125,6 @@ end
 avg_b_to_c_ratio = avg_at_percent(1) / avg_at_percent(2);
 
 b_to_c_ratio = at_percent(1,:) ./ at_percent(2,:);
-isinf(b_to_c_ratio)
-b_to_c_ratio(isinf(b_to_c_ratio)) = NaN;
-mean(b_to_c_ratio,'omitnan')
 
 % print the average atomic percents
 fprintf('Average values over the region:\n')
@@ -154,6 +158,7 @@ for i = 1:3
 end
 
 title('Atomic % Over the EDS Region')
+subtitle('B/C values are only valid within a boron carbide grain')
 xlabel('Position (pixel)')
 ylabel('Atomic Percent (%)')
 legend('B','C','Si')
