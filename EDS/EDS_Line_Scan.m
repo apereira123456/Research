@@ -13,8 +13,6 @@ SEM = 'Gemini';
 if strcmp(SEM,'Gemini')
     m = [0.75, -0.45];
     b = [0.83, 0.63];
-%     cb_b = 0.83;    cb_m = 0.75;
-%     sb_b = 0.63;    sb_m = -0.45;
 elseif strcmp(SEM,'Sigma')
     m = [0.75, -0.45];
     b = [0.83, 0.63];
@@ -73,22 +71,18 @@ else
 
     % Store values
     % Start is top left and end is bottom right (image origin is top left)
-    xmin = floor(x); xmax = floor(x + w);
-    ymin = floor(y); ymax = floor(y + h);
+    xmin = ceil(x); xmax = floor(x + w);
+    ymin = ceil(y); ymax = floor(y + h);
     delta = xmax - xmin + 1;
 end
 
-[region_b_counts, region_c_counts, region_si_counts] = deal(zeros(1,delta));
+counts = zeros(3,delta);
 
 for i = 1:delta
-    counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
-    counts(2,i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
-    counts(3,i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
+    counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1));
+    counts(2,i) = mean(data(ymin:ymax, xmin + i - 1, 2));
+    counts(3,i) = mean(data(ymin:ymax, xmin + i - 1, 3));
 end
-
-%     region_b_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 1), 'all');
-%     region_c_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 2), 'all');
-%     region_si_counts(i) = mean(data(ymin:ymax, xmin + i - 1, 3), 'all');
 
 %% Apply the Scaling Factors
 for i = 1:2
@@ -116,17 +110,22 @@ for i = 1:3
     at_percent(i,:) = 100 * mol(i,:) ./ total_mols;
 end
 
-b_to_c_ratio = at_percent(1,:) ./ at_percent(2,:);
-
 for i = 1:3
     % calculate average atomic percents over the region
-    avg_at_percent(i) = mean(at_percent(i,:));
+    avg_at_percent(i) = mean(at_percent(i,:),2);
 end
 
-avg_b_to_c_ratio = mean(b_to_c_ratio);
+avg_b_to_c_ratio = avg_at_percent(1) / avg_at_percent(2);
+
+b_to_c_ratio = at_percent(1,:) ./ at_percent(2,:);
+isinf(b_to_c_ratio)
+b_to_c_ratio(isinf(b_to_c_ratio)) = NaN;
+mean(b_to_c_ratio,'omitnan')
 
 % print the average atomic percents
 fprintf('Average values over the region:\n')
+fprintf('B: %0.2f at.%%\n',avg_at_percent(1))
+fprintf('C: %0.2f at.%%\n',avg_at_percent(2))
 fprintf('Si: %0.2f at.%%\n',avg_at_percent(3))
 fprintf('B/C: %0.2f\n',avg_b_to_c_ratio)
 
@@ -137,7 +136,7 @@ for i = 1:3
     subplot(number_of_files, 2, 2*i-1)
     imshow(data(:,:,i))
     colormap(summer)
-    title(filename{1})
+    title(filename{i})
     
     rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 1)
     

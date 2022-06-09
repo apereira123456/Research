@@ -55,8 +55,8 @@ while go_again == 'Y'
     
     if contains(path,'/')
         delim = '/';
-    elseif contains(path,'\\')
-        delim = '\\';
+    elseif contains(path,'\')
+        delim = '\';
     end 
     
     folders_in_path(num_folders-1:num_folders) = '';
@@ -139,8 +139,8 @@ while go_again == 'Y'
     sib_intensity_ratio = region_si_counts ./ region_b_counts;
     
     % calculate scaling factors for each point along line averaged intensity
-    cb_scaling_factor = 0.83*exp(0.75 .* cb_intensity_ratio);
-    sb_scaling_factor = 0.63*exp(-0.45 .* sib_intensity_ratio);
+    cb_scaling_factor = cb_b*exp(cb_m .* cb_intensity_ratio);
+    sb_scaling_factor = sb_b*exp(sb_m .* sib_intensity_ratio);
     
     % apply scaling factors to get corrected relative intensity of each element
     rel_intensity_c = cb_scaling_factor .* cb_intensity_ratio;
