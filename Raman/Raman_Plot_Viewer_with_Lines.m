@@ -1,6 +1,18 @@
-function Raman_Plot_Viewer
+function Raman_Plot_Viewer_with_Lines
     %% Clear
     close all; clear all; clc;
+
+    % Specify interval over which to search for peak maximum
+    sample_material = 'B4C';
+    % sample_material = 'SiC';
+        
+    if strcmp(sample_material, 'B4C')
+        peak_id = {'480', '530', '730', '1080'};
+        search_loc = [460,500; 510,550; 700,760; 1040,1120];
+    elseif strcmp(sample_material, 'SiC')
+        peak_id = {'790', '970'};
+        search_loc = [770,810; 950,990];
+    end
 
     %% Data Selection Prompt
     [file, path] = uigetfile({'*.txt'});
@@ -23,10 +35,10 @@ function Raman_Plot_Viewer
     
     for j = 1:y_size
         for i = 1:x_size
-            a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
+            l = (i-1)*s_size + (j-1)*x_size*s_size + 1;
             b = i*s_size + (j-1)*x_size*s_size;
 
-            sorted_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),s_size,1);
+            sorted_data(i,j,2) = mat2cell(normalize(data(b:-1:l,4),1,'range'),s_size,1);
         end
     end
     
@@ -88,10 +100,15 @@ function Raman_Plot_Viewer
     
     ax = uiaxes(fig);
     ax.Position = [0.1*w 0.15*h 0.8*w 0.8*h];
-    plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
 
-    for i = 1:length(peak_id)
-        
+    hold(ax,'on')
+
+    for l = 1:length(peak_id)
+        plot(ax, [search_loc(l,1) search_loc(l,1)], [0 1], 'r', 'LineWidth', 2)
+        plot(ax, [search_loc(l,2) search_loc(l,2)], [0 1], 'r', 'LineWidth', 2)
+    end
+
+    pt = plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2);
     
     title(ax, title_text, 'interpreter', 'latex', 'FontSize', 18)
     xlabel(ax, x_text, 'interpreter', 'latex', 'FontSize', 14)
@@ -101,6 +118,8 @@ function Raman_Plot_Viewer
     ax.YLim = [0 1];
     
     function sliderMoving(event,~)
+        delete(pt)
+
         index = floor(event.Value);
         i = mod(index, x_size);
         if i == 0
@@ -117,10 +136,12 @@ function Raman_Plot_Viewer
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
+        pt = plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2);
     end
 
     function one_up(src,~)
+        delete(pt)
+
         index = sscanf(txt.Value{1}, 'Index=%d');
         if index < ij
             index = index + 1;
@@ -143,10 +164,12 @@ function Raman_Plot_Viewer
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
+        pt = plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2);
     end
 
     function one_down(src,~)
+        delete(pt)
+
         index = sscanf(txt.Value{1}, 'Index=%d');
         if index > 1
             index = index - 1;
@@ -169,7 +192,7 @@ function Raman_Plot_Viewer
     
         Wavenumber = sorted_data{i,j,1};
         Intensity = sorted_data{i,j,2};
-        plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2)
+        pt = plot(ax, Wavenumber, Intensity, 'b', 'LineWidth', 2);
     end
 
     function save_fig(src,~)

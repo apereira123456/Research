@@ -64,30 +64,21 @@ ij = x_size*y_size;
 
 %% Specify analysis region
 % Prompt user to select csv file from Raman Map to Line program
-if x_size ~= 1 && y_size ~= 1
-    [file, path] = uigetfile({'*.csv'},'Select index file',path);
-    index_name = fullfile(path, file);
-    index = table2array(readtable(index_name));
-    index = index';
-% Prompt user to specify start and end indices for line scan
+prompt = "Enter start position:";
+a = input(prompt);
+
+prompt = "Enter end position:";
+b = input(prompt);
+
+if a < b
+    index = a:b;
 else
-    prompt = "Enter start index:";
-    a = input(prompt);
-
-    prompt = "Enter end index:";
-    b = input(prompt);
-
-    if a < b
-        index = a:b;
-    else
-        index = b:a;
-    end
+    index = b:a;
 end
 
 %% Convert raw data to plottable format
-sorted_data = cell(x_size,y_size,2);
+sorted_data = cell(1,y_size,2);
 sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1);
-% sorted_data(:,:,1) = data(s_size:-1:1,3); 
 
 for j = 1:y_size
     for i = 1:x_size
