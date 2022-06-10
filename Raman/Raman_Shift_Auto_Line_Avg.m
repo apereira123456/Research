@@ -3,10 +3,10 @@ close all; clear all; clc;
 
 %% Setup Parameters
 % Step size in microns
-step = 1;
+step = 2;
 
 % Origin
-origin_index = 801;
+origin_index = 401;
 %798
 % B4C after origin_index
 % SiC before origin_index
@@ -15,7 +15,7 @@ origin_index = 801;
 interval = 51;
 
 % Specify interval over which to search for peak maximum
-sample_name = 'D4';
+sample_name = 'D3';
 sample_material = 'B4C';
 % sample_material = 'SiC';
     
@@ -62,6 +62,27 @@ mkdir([parent_folder, sample_material])
 
 ij = x_size*y_size;
 
+%% Convert raw data to plottable format
+map_data = cell(x_size,y_size,2);
+map_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1); 
+
+for j = 1:y_size
+    for i = 1:x_size
+        a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
+        b = i*s_size + (j-1)*x_size*s_size;
+
+        map_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),s_size,1);
+    end
+end
+
+Wavenumber = map_data{1,1,1};
+
+% for j = 1:y_size
+%     temp(:,j) = map_data{:,j,2};    
+% end
+% 
+% line_data(1,j,2) = mat2cell(mean(temp,2),s_size,1);
+
 %% Specify analysis region
 % Prompt user to select csv file from Raman Map to Line program
 prompt = "Enter start position:";
@@ -76,23 +97,7 @@ else
     index = b:a;
 end
 
-%% Convert raw data to plottable format
-sorted_data = cell(1,y_size,2);
-sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1);
-
-for j = 1:y_size
-    for i = 1:x_size
-        a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
-        b = i*s_size + (j-1)*x_size*s_size;
-
-        sorted_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),s_size,1);
-    end
-end
-
-Wavenumber = sorted_data{1,1,1};
-
-%%
-
+Wavenumber = map_data{1,1,1};
 
 %% Graph Labels
 subtitle_text = '(Adjacent to Undoped Boron Carbide)';
@@ -112,33 +117,17 @@ for i = 1:length(peak_id)
     %% Peak Shift
     peak_loc = zeros(1,ij);
     
-    for n = index
-        i = mod(n, x_size);
-        if i == 0
-            i = x_size;
+    for v = index 
+        for u = 1:11
+            [M, I] = max(map_data{u,v,2}(disp_range,1), [], 1);
+    
+            random_var(1,u) = map_data{u,v,1}(start_index + I - 1,1);
         end
-        j = ceil(n/x_size);
-    
-        [M, I] = max(sorted_data{i,j,2}(disp_range,1), [], 1);
-        peak_loc(1,n) = sorted_data{i,j,1}(start_index + I - 1,1);
+        peak_loc(1,v) = mean(random_var,2);
     end
-    
-    % Map Scans: Correct distance for lines on an anlge
-    if x_size ~= 1 && y_size ~=1
-        x_coord = [mod(index(1), x_size), mod(index(end), x_size)];
-        y_coord = [ceil(index(1)/x_size), ceil(index(end)/x_size)];
-        
-        correction = x_coord == 0;
-        x_coord(correction) = x_size;
-    
-        line_length = step * sqrt((x_coord(end) - x_coord(1))^2 + (y_coord(end) - y_coord(1))^2);
-        
-        Distance = linspace(1,line_length,length(index));
     
     % Line Scans: Adjust distance based on origin
-    else
-        Distance = step * (index - origin_index);
-    end
+    Distance = step * (index - origin_index);
     
     fig = figure('visible','off');
     subplot(2,1,1)
