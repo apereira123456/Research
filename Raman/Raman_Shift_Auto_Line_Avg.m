@@ -16,8 +16,8 @@ interval = 51;
 
 % Specify interval over which to search for peak maximum
 sample_name = 'D3';
-sample_material = 'B4C';
-% sample_material = 'SiC';
+% sample_material = 'B4C';
+ sample_material = 'SiC';
     
 if strcmp(sample_material, 'B4C')
     peak_id = {'480', '530', '730', '1080'};
@@ -77,11 +77,19 @@ end
 
 Wavenumber = map_data{1,1,1};
 
-% for j = 1:y_size
-%     temp(:,j) = map_data{:,j,2};    
-% end
-% 
-% line_data(1,j,2) = mat2cell(mean(temp,2),s_size,1);
+trunc = [150, 1500];
+[~,trunc_start] = min(abs(Wavenumber - trunc(1)));
+[~,trunc_end] = min(abs(Wavenumber - trunc(2)));
+trunc_range = trunc_start:trunc_end;
+
+for j = 1:y_size
+    for i = 1:x_size
+        temp = map_data{i,j,2};
+        temp = temp(trunc_start:trunc_end,1);
+
+        map_data(i,j,2) = mat2cell(normalize(temp,1,'range'),length(trunc_range),1);
+    end
+end
 
 %% Specify analysis region
 % Prompt user to select csv file from Raman Map to Line program
