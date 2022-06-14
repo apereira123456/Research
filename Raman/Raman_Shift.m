@@ -7,7 +7,7 @@ step = 1;
 
 % Origin
 origin_index = 961;
-%798
+%401 404
 % B4C after origin_index
 % SiC before origin_index
 
@@ -52,6 +52,8 @@ else
         index = b:a;
     end
 end
+
+
 
 %% Convert raw data to plottable format
 sorted_data = cell(x_size,y_size,2);
