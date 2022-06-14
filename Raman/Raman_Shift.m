@@ -2,6 +2,9 @@
 close all; clear all; clc;
 
 %% Setup Parameters
+% Truncation Range (Wavenumber)
+trunc = [150, 1500];
+
 % Step size in microns
 step = 1;
 
@@ -53,63 +56,27 @@ else
     end
 end
 
-
-
 %% Convert raw data to plottable format
-sorted_data = cell(x_size,y_size,2);
-sorted_data(:,:,1) = mat2cell(data(s_size:-1:1,3),s_size,1);
-% sorted_data(:,:,1) = data(s_size:-1:1,3); 
+map_data = cell(x_size,y_size,2);
+
+[~,trunc_start] = min(abs(data(1:s_size,3) - trunc(2)));
+[~,trunc_end] = min(abs(data(1:s_size,3) - trunc(1)));
+
+trunc_size = trunc_end - trunc_start + 1;
+
+start_offset = trunc_start - 1;
+end_offset = s_size - trunc_end;
 
 for j = 1:y_size
     for i = 1:x_size
         a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
+        a = a + start_offset;
+
         b = i*s_size + (j-1)*x_size*s_size;
+        b = b - end_offset;
 
-        sorted_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),s_size,1);
-    end
-end
-
-Wavenumber = sorted_data{1,1,1};
-
-%% Display Range Prompt
-check = 1;
-
-start_wavenumber = Wavenumber(1,1);
-end_wavenumber = Wavenumber(end,1);
-
-fprintf('Start Wavenumber: %.2f \n',start_wavenumber)
-fprintf('End Wavenumber: %.2f \n',end_wavenumber)
-    
-while check
-    prompt = "Enter wavenumber start value:";
-    a = input(prompt);
-    
-    % Use the full range if no input is given
-    if isempty(a)
-        start_index = 1;
-        end_index = s_size;
-        disp_range = start_index:end_index;
-        check = 0;
-    
-    % Otherwise find the index of the closest wavenumber
-    else
-        [~,start_index] = min(abs(Wavenumber - a));
-        prompt = "Enter wavenumber end value:";
-        a = input(prompt);
-        [~,end_index] = min(abs(Wavenumber - a));
-    
-        disp_range = start_index:end_index;
-        
-        % Check for valid input
-        if start_index > end_index
-            disp('Invalid input.')
-
-        elseif length(disp_range) > 1
-            check = 0;
-
-        else
-            disp('Invalid input.')
-        end
+        map_data(i,j,1) = mat2cell(data(b:-1:a,3),trunc_size,1);
+        map_data(i,j,2) = mat2cell(normalize(data(b:-1:a,4),1,'range'),trunc_size,1);
     end
 end
 
@@ -129,14 +96,14 @@ for n = index
     end
     j = ceil(n/x_size);
 
-    [M, I] = max(sorted_data{i,j,2}(disp_range,1), [], 1);
-    peak_loc(1,n) = sorted_data{i,j,1}(start_index + I - 1,1);
+    [M, I] = max(map_data{i,j,2}, [], 1);
+    peak_loc(1,n) = map_data{i,j,1}(start_index + I - 1,1);
 end
 
 % Map Scans: Correct distance for lines on an anlge
 if x_size ~= 1 && y_size ~=1
     x_coord = [mod(index(1), x_size), mod(index(end), x_size)];
-    y_coord = [ceil(index(1)/x_size), ceil(index(end)/x_size)];
+    y_coord = [ceil(index(1) / x_size), ceil(index(end) / x_size)];
     
     correction = x_coord == 0;
     x_coord(correction) = x_size;
