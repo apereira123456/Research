@@ -3,10 +3,10 @@ close all; clear all; clc;
 
 %% Setup Parameters
 % Step size in microns
-step = 2;
+step = 25;
 
 % Origin
-origin_index = 402;
+origin_index = 1;
 %401 404
 % B4C after origin_index
 % SiC before origin_index
@@ -14,12 +14,12 @@ origin_index = 402;
 % Interval for moving average
 interval = 25;
 
-trunc = [150, 1500];
+trunc = [150, 1200];
 
 % Specify interval over which to search for peak maximum
-sample_name = 'D4';
-sample_material = 'B4C';
-% sample_material = 'SiC';
+sample_name = 'D5';
+% sample_material = 'B4C';
+sample_material = 'SiC';
     
 if strcmp(sample_material, 'B4C')
     peak_id = {'480', '530', '730', '1080'};
@@ -138,13 +138,13 @@ for i = 1:length(peak_id)
     Peak_Loc = zeros(1,length(index));
     random_var = zeros(1,11);
     
-    for v = index 
-        for u = 1:11
+    for u = index 
+        for v = 1:11
             [M, I] = max(trunc_data{u,v,2}(disp_range,1), [], 1);
     
-            random_var(1,u) = trunc_data{u,v,1}(start_index + I - 1,1);
+            random_var(1,v) = trunc_data{u,v,1}(start_index + I - 1,1);
         end
-        Peak_Loc(1,v) = mean(random_var,2);
+        Peak_Loc(1,u) = mean(random_var,2);
     end
     
     % Line Scans: Adjust distance based on origin

@@ -10,7 +10,7 @@ step = 1;
 
 % Origin
 origin_index = 961;
-%401 404
+% 401 404
 % B4C after origin_index
 % SiC before origin_index
 
