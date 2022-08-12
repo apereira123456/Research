@@ -1,7 +1,10 @@
 close all; clear all; clc;
 
 % Setup parameters
-full_map = 1;
+full_map = 0;
+
+% line_orientation = 'horz';
+line_orientation = 'vert';
 
 % Atomic masses: B, C, Si (g/mol)
 atomic_mass = [10.811, 12.011, 28.0855];
@@ -39,7 +42,7 @@ end
 %% Display EDS Map
 figure()
 hold on
-%imshow(data)
+imshow(data)
 
 %% Specify analysis region
 if full_map == 1
@@ -48,20 +51,16 @@ if full_map == 1
     xmin = 1; xmax = data_x_size;
     ymin = 1; ymax = data_y_size;
 
-
-
-%     xmin = 1447; xmax = 2736;
-%     ymin = 1348; ymax = 1612;
-% 
-%     x = xmin;
-%     y = ymin;
-
     w = xmax - xmin;
     h = ymax - ymin;
 
     rectangle('Position', [x y w h], 'EdgeColor', 'r', 'LineWidth', 2)
 
-    delta = w + 1;
+    if strcmp(line_orientation,'horz')
+        delta = w + 1;
+    elseif strcmp(line_orientation,'vert')
+        delta = h + 1;
+    end  
 else
     [x_coord, y_coord] = ginput(2);
     
@@ -81,17 +80,37 @@ else
     % Start is top left and end is bottom right (image origin is top left)
     xmin = ceil(x); xmax = floor(x + w);
     ymin = ceil(y); ymax = floor(y + h);
-    delta = xmax - xmin + 1;
+
+    if strcmp(line_orientation,'horz')
+        delta = xmax - xmin + 1;
+    elseif strcmp(line_orientation,'vert')
+        delta = ymax - ymin + 1;
+    end 
 end
 
+if strcmp(line_orientation,'horz')
+    counts = ones(3,delta);
+elseif strcmp(line_orientation,'vert')
+    counts = ones(delta,3);
+end
 
-[counts, intensity_ratio, scaling_factor, rel_intensity, wt_fraction, mol, at_percent] = deal(ones(3,delta));
+[intensity_ratio, scaling_factor, rel_intensity, wt_fraction, mol, at_percent] = deal(ones(3,delta));
 avg_at_percent = zeros(1,3);
 
 for i = 1:delta
-    counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1));
-    counts(2,i) = mean(data(ymin:ymax, xmin + i - 1, 2));
-    counts(3,i) = mean(data(ymin:ymax, xmin + i - 1, 3));
+    if strcmp(line_orientation,'horz')
+        counts(1,i) = mean(data(ymin:ymax, xmin + i - 1, 1));
+        counts(2,i) = mean(data(ymin:ymax, xmin + i - 1, 2));
+        counts(3,i) = mean(data(ymin:ymax, xmin + i - 1, 3));
+    elseif strcmp(line_orientation,'vert')
+        counts(i,1) = mean(data(ymin + i - 1, xmin:xmax, 1),2);
+        counts(i,2) = mean(data(ymin + i - 1, xmin:xmax, 2),2);
+        counts(i,3) = mean(data(ymin + i - 1, xmin:xmax, 3),2);
+    end
+end
+
+if strcmp(line_orientation,'vert')
+    counts = counts.';
 end
 
 %% Apply the Scaling Factors
@@ -134,7 +153,11 @@ fprintf('Si: %0.2f at.%%\n',avg_at_percent(3))
 fprintf('B/C: %0.2f\n',avg_b_to_c_ratio)
 
 %% Individual Plots
-interval = xmin:xmax;
+if strcmp(line_orientation,'horz')
+    interval = xmin:xmax;
+elseif strcmp(line_orientation,'vert')
+    interval = ymin:ymax;
+end
 
 for i = 1:3
     subplot(number_of_files, 2, 2*i-1)
