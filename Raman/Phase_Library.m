@@ -4,6 +4,8 @@ close all; clear all; clc;
 %% Setup Parameters
 % Specify excitation laser wavelength in nm
 lambda_excitation = 532;
+wave_start = 535.6;
+wave_end = 595;
 
 %% Standard Spectra
 % Read standard spectra data into array
@@ -14,6 +16,11 @@ standard = flipud(standard);
 
 % Convert Raman shift to Raman wavelength
 standard(:,1) = ( (lambda_excitation)^(-1) - (standard(:,1) ./ 10^7) ).^(-1);
+
+[~, start_index] = min(abs(standard(:,1) - wave_start));
+[~, end_index] = min(abs(standard(:,1) - wave_end));
+
+standard = standard(start_index:end_index, :);
 
 % Parameters for library creation
 [NumberOfXValues, ~] = size(standard);
@@ -114,7 +121,7 @@ phaseLibrary(2).WavelengthUnit = 'nanometer';
 phaseLibrary(2).DataUnit = 'Intensity (counts)';
 phaseLibrary(2).FirstXValue = FirstXValue;
 phaseLibrary(2).LastXValue = LastXValue;
-phaseLibrary(2).NumberOfXValues = LastXValue;
+phaseLibrary(2).NumberOfXValues = NumberOfXValues;
 phaseLibrary(2).AdditionalInformation = 'none';
 phaseLibrary(2).Wavelength = standard(:,1);
 phaseLibrary(2).Reflectance = standard(:,3);
@@ -139,7 +146,7 @@ phaseLibrary(3).WavelengthUnit = 'nanometer';
 phaseLibrary(3).DataUnit = 'Intensity (counts)';
 phaseLibrary(3).FirstXValue = FirstXValue;
 phaseLibrary(3).LastXValue = LastXValue;
-phaseLibrary(3).NumberOfXValues = LastXValue;
+phaseLibrary(3).NumberOfXValues = NumberOfXValues;
 phaseLibrary(3).AdditionalInformation = 'none';
 phaseLibrary(3).Wavelength = standard(:,1);
 phaseLibrary(3).Reflectance = standard(:,4);
@@ -164,7 +171,7 @@ phaseLibrary(4).WavelengthUnit = 'nanometer';
 phaseLibrary(4).DataUnit = 'Intensity (counts)';
 phaseLibrary(4).FirstXValue = FirstXValue;
 phaseLibrary(4).LastXValue = LastXValue;
-phaseLibrary(4).NumberOfXValues = LastXValue;
+phaseLibrary(4).NumberOfXValues = NumberOfXValues;
 phaseLibrary(4).AdditionalInformation = 'none';
 phaseLibrary(4).Wavelength = standard(:,1);
 phaseLibrary(4).Reflectance = standard(:,5);
@@ -189,7 +196,7 @@ phaseLibrary(5).WavelengthUnit = 'nanometer';
 phaseLibrary(5).DataUnit = 'Intensity (counts)';
 phaseLibrary(5).FirstXValue = FirstXValue;
 phaseLibrary(5).LastXValue = LastXValue;
-phaseLibrary(5).NumberOfXValues = LastXValue;
+phaseLibrary(5).NumberOfXValues = NumberOfXValues;
 phaseLibrary(5).AdditionalInformation = 'none';
 phaseLibrary(5).Wavelength = standard(:,1);
 phaseLibrary(5).Reflectance = standard(:,6);
@@ -214,7 +221,7 @@ phaseLibrary(6).WavelengthUnit = 'nanometer';
 phaseLibrary(6).DataUnit = 'Intensity (counts)';
 phaseLibrary(6).FirstXValue = FirstXValue;
 phaseLibrary(6).LastXValue = LastXValue;
-phaseLibrary(6).NumberOfXValues = LastXValue;
+phaseLibrary(6).NumberOfXValues = NumberOfXValues;
 phaseLibrary(6).AdditionalInformation = 'none';
 phaseLibrary(6).Wavelength = standard(:,1);
 phaseLibrary(6).Reflectance = standard(:,7);
