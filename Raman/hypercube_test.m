@@ -48,71 +48,84 @@ end
 
 hcube = hypercube(dcube, wavelength);
 hcube = removeBands(hcube,'Wavelength', wlrange);
+dcube = hcube.DataCube;
 
-% hyperspectralViewer(newhcube);
+hyperspectralViewer(hcube);
 
 %% Match Spectra
-% scoreMap = spectralMatch(phaseLibrary, hcube);
+scoreMap(:,:,1) = sidsam(dcube(:,:,1:end-1), phaseLibrary(1).Reflectance);
+scoreMap(:,:,2) = sidsam(dcube(:,:,1:end-1), phaseLibrary(2).Reflectance);
+scoreMap(:,:,3) = sidsam(dcube(:,:,1:end-1), phaseLibrary(3).Reflectance);
+scoreMap(:,:,4) = sidsam(dcube(:,:,1:end-1), phaseLibrary(4).Reflectance);
+scoreMap(:,:,5) = sidsam(dcube(:,:,1:end-1), phaseLibrary(5).Reflectance);
+scoreMap(:,:,6) = sidsam(dcube(:,:,1:end-1), phaseLibrary(6).Reflectance);
+
+% scoreMap(:,:,1) = sidsam(dcube, phaseLibrary(1).Reflectance);
+% scoreMap(:,:,2) = sidsam(dcube, phaseLibrary(2).Reflectance);
+% scoreMap(:,:,3) = sidsam(dcube, phaseLibrary(3).Reflectance);
+% scoreMap(:,:,4) = sidsam(dcube, phaseLibrary(4).Reflectance);
+% scoreMap(:,:,5) = sidsam(dcube, phaseLibrary(5).Reflectance);
+% scoreMap(:,:,6) = sidsam(dcube, phaseLibrary(6).Reflectance);
+
+% scoreMap(:,:,1) = sidsam(dcube(:,:,1:end-1), phaseLibrary(1).Reflectance);
+% scoreMap(:,:,2) = sidsam(dcube(:,:,1:end-1), phaseLibrary(3).Reflectance);
+% scoreMap(:,:,3) = sidsam(dcube(:,:,1:end-1), phaseLibrary(4).Reflectance);
+% scoreMap(:,:,4) = sidsam(dcube(:,:,1:end-1), phaseLibrary(5).Reflectance);
 % 
+[~,classMap] = min(scoreMap,[],3);
+
+figure
+imagesc(classMap)
+
+ticks = linspace(0.5,5.5,6);
+colormap(jet(6))
+colorbar('Ticks',ticks)
+clim([0 6])
+
+% %% B4C
 % figure
-% montage(scoreMap,'Size',[2 3],'BorderSize',10)
-% title('Score Map Obtained for Each Pure Spectrum','FontSize',14)
+% title('Boron Carbide')
+% imagesc(scoreMap(:,:,1))
 % colormap(jet);
 % colorbar
-% clim([0 5])
-
-scoreMap(:,:,1) = sidsam(dcube, phaseLibrary(1).Reflectance);
-scoreMap(:,:,2) = sidsam(dcube, phaseLibrary(2).Reflectance);
-scoreMap(:,:,3) = sidsam(dcube, phaseLibrary(3).Reflectance);
-scoreMap(:,:,4) = sidsam(dcube, phaseLibrary(4).Reflectance);
-scoreMap(:,:,5) = sidsam(dcube, phaseLibrary(5).Reflectance);
-scoreMap(:,:,6) = sidsam(dcube, phaseLibrary(6).Reflectance);
-
-%% B4C
-figure
-imagesc(scoreMap(:,:,1))
-colormap(jet);
-colorbar
-clim([0 700])
-
-%% B6.5C
-figure
-imagesc(scoreMap(:,:,2))
-colormap(jet);
-colorbar
-clim([0 1000])
-
-%% Si-BC
-figure
-imagesc(scoreMap(:,:,3))
-colormap(jet);
-colorbar
-clim([0 1000])
-
-%% Si
-figure
-imagesc(scoreMap(:,:,4))
-colormap(jet);
-colorbar
-clim([0 300])
-
-%% SiB6
-figure
-imagesc(scoreMap(:,:,5))
-colormap(jet);
-colorbar
-clim([0 550])
-
-%% B
-figure
-imagesc(scoreMap(:,:,6))
-colormap(jet);
-colorbar
-clim([0 1000])
-
+% clim([0 30])
+% 
+% %% B6.5C
 % figure
-% montage(scoreMap,'Size',[2 3],'BorderSize',10)
-% title('Score Map Obtained for Each Pure Spectrum','FontSize',14)
+% title('Boron Doped Boron Carbide')
+% imagesc(scoreMap(:,:,2))
 % colormap(jet);
 % colorbar
-% clim([0 1000])
+% clim([0 200])
+% 
+% %% Si-BC
+% figure
+% title('Silicon Doped Boron Carbide')
+% imagesc(scoreMap(:,:,3))
+% colormap(jet);
+% colorbar
+% clim([0 10])
+% 
+% %% Si
+% figure
+% title('Silicon')
+% imagesc(scoreMap(:,:,4))
+% colormap(jet);
+% colorbar
+% clim([0 45])
+% 
+% %% SiB6
+% figure
+% title('Silicon Boride')
+% imagesc(scoreMap(:,:,5))
+% colormap(jet);
+% colorbar
+% clim([0 30])
+% 
+% %% B
+% figure
+% title('Boron')
+% imagesc(scoreMap(:,:,6))
+% colormap(jet);
+% colorbar
+% clim([0 10])
