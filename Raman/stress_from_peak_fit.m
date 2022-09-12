@@ -8,6 +8,11 @@ load('phaseLibrary.mat')
 % Specify excitation laser wavelength in nm
 lambda_excitation = 532;
 
+% first_guess = struct('b4c', [270 60 320 60 480 20 530 15 724 50 825 50 1000 40 1089 90], ...
+%                      'sic1', [554.60 0.170 554.88 0.227 555.31 0.227 555.52 0.227], );
+
+first_guess = struct('sic', [560.76 0.283]);
+
 % Specify spectral bands to be analyzed
 wave_start = 535.74;
 wave_end = 595;
@@ -53,62 +58,50 @@ end
 wavelength = wavelength(start_index:end_index);
 dcube = normalize(dcube(:,:,start_index:end_index),3,'range');
 
-hcube = hypercube(dcube, wavelength);
-
 %% Viewer
+% hcube = hypercube(dcube, wavelength);
 % hyperspectralViewer(hcube);
 
-%% Match Spectra
-%% SIDSAM
-scoreMap(:,:,1) = sidsam(dcube, phaseLibrary(1).Reflectance);
-scoreMap(:,:,2) = sidsam(dcube, phaseLibrary(2).Reflectance);
-scoreMap(:,:,3) = sidsam(dcube, phaseLibrary(3).Reflectance);
-scoreMap(:,:,4) = sidsam(dcube, phaseLibrary(4).Reflectance);
+%% Peak Fit
+% SiC
+[~,peak_start] = min(abs(wavelength - 557.97));
+[~,peak_end] = min(abs(wavelength - 563.57));
 
-% %% B4C
-% figure
-% title('Boron Carbide')
-% imagesc(scoreMap(:,:,1))
-% colormap(jet);
-% colorbar
-% clim([0 150])
-% 
-% %% Si
-% figure
-% title('Silicon')
-% imagesc(scoreMap(:,:,2))
-% colormap(jet);
-% colorbar
-% clim([0 3500])
-% 
-% %% SiB6
-% figure
-% title('Silicon Boride')
-% imagesc(scoreMap(:,:,3))
-% colormap(jet);
-% colorbar
-% clim([0 200])
-% 
-%% SiC
+fit_data = cell(y_size,x_size);
+
+for j = 1:y_size
+    for i = 1:x_size
+        signal = [wavelength(peak_start:peak_end) squeeze(dcube(j,i,peak_start:peak_end))];
+        [FitResults,FitError] = peakfit(signal,0,0,1,1,0,3,first_guess.sic,1,0,0);
+        
+        fit_data(j,i) = mat2cell(FitResults, 1, 5);
+    end
+end
+
+%%
+save('fit_data')
+
+%%
+% load('fit_data.mat')
+
+%% Stress Map
+peakMap = zeros(y_size,x_size);
+for j = 1:y_size
+    for i = 1:x_size
+        peakMap(j,i) = fit_data{j,i}(1,2);
+    end
+end
+
 figure
-title('SiC')
-imagesc(scoreMap(:,:,4))
-colormap(jet);
+heatmap = imagesc(peakMap);
+set(heatmap,'AlphaData',~isnan(peakMap))
+colormap("jet")
 colorbar
-clim([0 0.7])
+% clim([0 0.11])
 
-% scoreMap(:,:,1) = jmsam(dcube, phaseLibrary(1).Reflectance);
-% scoreMap(:,:,2) = jmsam(dcube, phaseLibrary(2).Reflectance);
-% scoreMap(:,:,3) = jmsam(dcube, phaseLibrary(3).Reflectance);
-% scoreMap(:,:,4) = jmsam(dcube, phaseLibrary(4).Reflectance);
+%%
+% Generate the new figure name
+figure_name = append(path, 'Raman Stress Map.png');
 
-%% Class Map
-[~,classMap] = min(scoreMap,[],3);
-
-figure
-imagesc(classMap)
-
-ticks = linspace(1,4,4);
-colormap(jet(4))
-colorbar('Ticks',ticks,'TickLabels',[phaseLibrary.Name])
-clim([0.5 4.5])
+% Save the figure
+export_fig(figure_name,'-transparent','-m5');
