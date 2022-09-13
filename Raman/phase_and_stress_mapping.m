@@ -127,10 +127,10 @@ peakMap = zeros(y_size,x_size);
 for j = 1:y_size
     for i = 1:x_size
         if classMap(j,i) == 1
-%             [row, ~] = find(fit_data{j,i}(:,1) == 3);
-%             peakMap(j,i) = fit_data{j,i}(row,2);
+            [row, ~] = find(fit_data{j,i}(:,1) == 3);
+            peakMap(j,i) = fit_data{j,i}(row,2);
 
-            peakMap(j,i) = fit_data{j,i}(3,2);
+%             peakMap(j,i) = fit_data{j,i}(3,2);
         else
             peakMap(j,i) = NaN;
         end
@@ -152,8 +152,8 @@ heatmap = imagesc(peakMap);
 set(heatmap,'AlphaData',~isnan(peakMap))
 colormap("jet")
 colorbar
-% clim([564.7 564.85])
-clim([545.945 545.985])
+clim([564.7 564.8])
+% clim([545.945 545.985])
 % clim([560.87 560.92])
 
 %%
