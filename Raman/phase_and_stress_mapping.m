@@ -23,8 +23,7 @@ wave_end = 595;
 data_name = fullfile(path, file);
 data = table2array(readtable(data_name));
 
-%% Logic for Scans of Different Dimensions
-% Determine data array size
+%% Determine data array size
 [~,x,~] = unique(data(:,1),'rows');
 [~,y,~] = unique(data(:,2),'rows');
 [~,s,~] = unique(data(:,3),'rows');
