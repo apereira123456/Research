@@ -102,7 +102,7 @@ for j = 1:y_size
             [FitResults2, ~] = peakfit(signal2,0,0,2,1,0,3,first_guess.b4c2,1,0,0);         
             [FitResults4, ~] = peakfit(signal4,0,0,3,1,0,3,first_guess.b4c4,1,0,0);
 
-            fit_data(j,i) = mat2cell([FitResults1; FitResults2; FitResults4], 7, 5);
+            fit_data(j,i) = mat2cell([FitResults1(:,2:5); FitResults2(:,2:5); FitResults4(:,2:5)], 7, 4);
         
         elseif classMap(j,i) == 4
             [~,sic_start] = min(abs(wavelength - 557.97));
@@ -110,13 +110,32 @@ for j = 1:y_size
             sic_signal = [wavelength(sic_start:sic_end) squeeze(dcube(j,i,sic_start:sic_end))];
 
             [FitResults, ~] = peakfit(sic_signal,0,0,1,1,0,3,first_guess.sic,1,0,0);            
-            fit_data(j,i) = mat2cell(FitResults, 1, 5);
+            
+             
+            fit_data(j,i) = mat2cell(FitResults(1,2:5), 1, 4);
         end
     end
 end
 
 %%
 save('fit_data')
+
+%%
+for i = 1:x_size
+    y = 1;
+    for j = 1:y_size
+        index = i + (j-1) * x_size;
+        height = size(fit_data{j,i},1);
+
+        conversion(y:y + height, 1 + 4 * (i - 1):4 + 4 * (i - 1)) = [index height NaN NaN; fit_data{j,i}(:,2:5)];
+        y = y + height + 1;
+    end
+end
+
+conversion(1,end+1) = x_size;
+conversion(end+1,1) = y_size;
+
+writematrix(conversion,'conversion.txt','Delimiter','tab')
 
 %%
 load('fit_data.mat')
