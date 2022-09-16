@@ -1,67 +1,56 @@
-%%
-load('fit_data.mat')
+%% Standard Selection Prompt
+UIFigure.Visible = 'off';
+[file, temp_path] = uigetfile({'*.txt'});
 
-%%
-% pixel headers
-% M: material, X: x-coordinate, Y: y-coordinate, H: table height
+UIFigure.Visible = 'on';
+PeakFitEditField.Value = file;
 
-% peak headers
-% 'Position' 'Height' 'FWHM' 'Area'
+fit_data_name = fullfile(temp_path, file);            
+peak_import = table2array(readtable(fit_data_name));
 
-%%
-for i = 1:x_size
-    y = 1;
-    for j = 1:y_size
-        index = i + (j-1) * x_size;
+x_size = max(peak_import(:,2));
+y_size = max(peak_import(:,3));
 
-        if isempty(fit_data{j,i})
-            height = 0;
-            conversion(y:y + height, 1 + 4 * (i - 1):4 + 4 * (i - 1)) = [index height NaN NaN];
-        else
-            height = size(fit_data{j,i},1);
-            conversion(y:y + height, 1 + 4 * (i - 1):4 + 4 * (i - 1)) = [index height NaN NaN; fit_data{j,i}(:,2:5)];
-        end
-        y = y + height + 1;
-    end
-end
+phase_map = zeros(y_size, x_size);
+peak_fit = cell(y_size,x_size);
 
-conversion(1,end+1) = x_size;
-conversion(end+1,1) = y_size;
-
-writematrix(conversion,'conversion.txt','Delimiter','tab')
-
-%%
-table = table2array(readtable('conversion.txt'));
-
-x_size = table(1,end);
-y_size = table(end,1);
-
-test_data = cell(y_size,x_size);
-
-for i = 1:x_size
-    y = 1;
-    for j = 1:y_size
-        height = table(y, 2 + 4 * (i - 1));
-
-        test_data(j,i) = mat2cell(table(y+1:y + height, 1 + 4 * (i - 1):4 + 4 * (i - 1)), height, 4);
-        
-        y = y + height + 1;
-    end
-end
-
-%%
-peak_map = NaN(y_size,x_size);
+table_row = 1;
 
 for j = 1:y_size
     for i = 1:x_size
-        if classMap(j,i) == 1
-            peak_map(j,i) = test_data{j,i}(3,2);
+        if peak_import(table_row,1) == 1
+            phase_map(j,i) = peak_import(table_row,1);
+            peak_fit(j,i) = mat2cell(peak_import(table_row:table_row + 6,5:8),7,4);
+            table_row = table_row + 8;           
+        
+        elseif peak_import(table_row,1) == 4
+            phase_map(j,i) = peak_import(table_row,1);
+            peak_fit(j,i) = mat2cell(peak_import(table_row,5:8),1,4);
+            table_row = table_row + 2;
+            
+        else
+            phase_map(j,i) = peak_import(table_row,1);
+            table_row = table_row + 2;
         end
     end
-end 
+end
 
-%%
-varTypes = {'string', 'uint8', 'uint8', 'uint8', 'double', 'double', 'double', 'double'};
-varNames = {'M', 'X', 'Y', 'H', 'Position', 'Height', 'FWHM', 'Area'};
-peak_export = table('Size',[1 8],'VariableTypes',varTypes,'VariableNames',varNames);
-peak_export{1,:} = 'B4C', 1, 1, 1, 1087.4, 1, 32.3, 16.15;
+phase_map1 = phase_map;
+
+% phase_map1(phase_map == 0) = 2 * (phase_map == 0);
+% phase_map1(phase_map == 1) = 8 * (phase_map == 1);
+% phase_map1(phase_map == 2) = 2 .* phase_map1(phase_map == 2);
+% phase_map1(phase_map == 3) = 2 .* phase_map1(phase_map == 3);
+% phase_map1(phase_map == 4) = 2 * (phase_map == 4);
+
+b4c_num = sum(phase_map == 1,'all');
+sic_num = sum(phase_map == 4,'all');
+other_num = sum(phase_map == 0,'all');
+total = x_size * y_size;
+
+total(:,:,1) = sum(8 * (phase_map == 1),'all');
+total(:,:,2) = sum(2 * (phase_map == 4),'all');
+total(:,:,3) = sum(2 * (phase_map == 0),'all');
+total_row = sum(total,'all');
+
+[M, X, Y, H, Position, Height, FWHM, Area] = deal(zeros(sum(phase_map1,'all'),1));

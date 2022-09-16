@@ -18,8 +18,8 @@ peak_window = struct('b4c1', [150.7 414.6], 'b4c2', [448.4 575.4], ...
                      'sic', [874.9 1053.0]);
 
 % Specify spectral bands to be analyzed
-wave_start = 535.74;
-wave_end = 595;
+wave_start = 130;                   % spectral bands to be analyzed
+wave_end = 1500;                    % spectral bands to be analyzed
 
 %% Standard Selection Prompt
 UIFigure.Visible = 'off';
@@ -41,8 +41,12 @@ standard = standard(start_index:end_index, :);
 %% Data Selection Prompt
 [file, path] = uigetfile({'*.txt'});
 
+UIFigure.Visible = 'on';
+DataEditField.Value = file;
+
 data_name = fullfile(path, file);
 data = table2array(readtable(data_name));
+
 
 %% Determine data array size
 [~,x,~] = unique(data(:,1),'rows');
@@ -53,19 +57,17 @@ data = table2array(readtable(data_name));
 [y_size, ~] = size(y);
 [s_size, ~] = size(s);
 
+
 %% Convert raw data to usable format
 % Store Raman shift
-wavelength = data(s_size:-1:1,3);
-
-% Convert Raman shift to Raman wavelength
-wavelength = ( (lambda_excitation)^(-1) - (wavelength ./ 10^7) ).^(-1);
+wavenumber = data(s_size:-1:1,3);    
 
 % Initialize the cell that stores the Raman data
 dcube = zeros(y_size,x_size,s_size);
 
 tic
 for j = 1:y_size
-    parfor i = 1:x_size
+    for i = 1:x_size
         a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
         b = i*s_size + (j-1)*x_size*s_size;
 
@@ -74,10 +76,10 @@ for j = 1:y_size
 end
 toc
 
-[~, start_index] = min(abs(wavelength - wave_start));
-[~, end_index] = min(abs(wavelength - wave_end));
+[~, start_index] = min(abs(wavenumber - wave_start));
+[~, end_index] = min(abs(wavenumber - wave_end));
 
-wavelength = wavelength(start_index:end_index);
+wavenumber = wavenumber(start_index:end_index);
 dcube = normalize(dcube(:,:,start_index:end_index),3,'range');
 
 %% Viewer
@@ -98,6 +100,7 @@ fit_data = cell(y_size,x_size);
 
 tic
 for j = 1:y_size
+    sprintf('%d', j)
     parfor i = 1:x_size
         if phase_map(j,i) == 1          
             [~,b4c1_start] = min(abs(wavenumber - peak_window.b4c1(1)));
