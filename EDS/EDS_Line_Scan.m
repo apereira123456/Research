@@ -1,7 +1,7 @@
 close all; clear all; clc;
 
 % Setup parameters
-full_map = 1;
+full_map = 0;
 
 % line_orientation = 'horz';
 line_orientation = 'vert';
