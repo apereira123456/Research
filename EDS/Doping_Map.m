@@ -2,6 +2,9 @@
 % close all; 
 clear all; clc
 
+%
+n = 49;
+
 % Setup Parameters
 m = [0.75, -0.45];                          % Scaling factors for C/B and Si/B
 b = [0.83, 0.63];                           % Scaling factors for C/B and Si/B
@@ -28,12 +31,9 @@ for i = 1:number_of_files
 end
 
 % Find the average of an nxn box of pixels surrounding a central pixel and replace it with the average 
-n = 49;
-% n = 75;
-% n = 99;
 c = ceil(n/2);
 kernel = ones(n);
-kernel(c,c) = 0;
+% kernel(c,c) = 0;
 for i = 1:3
     data(:,:,i) = conv2(data(:,:,i), kernel, 'same');
 end
