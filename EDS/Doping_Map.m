@@ -3,7 +3,7 @@
 clear all; clc
 
 %
-n = 49;
+n = 15;
 
 % Setup Parameters
 m = [0.75, -0.45];                          % Scaling factors for C/B and Si/B
@@ -101,17 +101,37 @@ end
 b_to_c_ratio = boron ./ carbon;
 
 %%
-figure
-silicon_map = imagesc(silicon);
-set(silicon_map,'AlphaData',~isnan(silicon))
-colormap jet
-colorbar
-clim([1.7 3.2]);
+test = NaN(y_size, x_size);
+test(silicon < 4) = silicon(silicon < 4);
+
+avg = mean(test, 'all', 'omitnan')
 
 %%
 figure
-bc_map = imagesc(b_to_c_ratio);
-set(bc_map,'AlphaData',~isnan(b_to_c_ratio))
-colormap jet
+silicon_map = imagesc(test);
+set(silicon_map,'AlphaData',~isnan(silicon))
+colormap gray
 colorbar
-clim([0 3.5]);
+
+%%
+figure
+silicon_map = imagesc(silicon);
+set(silicon_map,'AlphaData',~isnan(silicon))
+colormap gray
+colorbar
+
+% %%
+% figure
+% silicon_map = imagesc(silicon);
+% set(silicon_map,'AlphaData',~isnan(silicon))
+% colormap jet
+% colorbar
+% clim([1.7 3.2]);
+
+% %%
+% figure
+% bc_map = imagesc(b_to_c_ratio);
+% set(bc_map,'AlphaData',~isnan(b_to_c_ratio))
+% colormap jet
+% colorbar
+% clim([0 3.5]);
