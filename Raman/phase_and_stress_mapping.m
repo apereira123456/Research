@@ -8,14 +8,13 @@ pool = parpool('local');
 % Specify excitation laser wavelength in nm
 lambda_excitation = 532;
 
-first_guess = struct('b4c1', [265.8 54.5 324.1 45.1], 'b4c2', [482.0 11.3 532.7 13.2], ...
-                     'b4c3', [724.4 54.5 797.7 54.5 833.5 33.8 859.8 22.6], ...
-                     'b4c4', [965.0 28.2 1002.6 45.1 1087.2 88.3], 'si', [528.8 35.3], ...
-                     'sic', [964.1 10.0]);
+first_guess = struct('b4c1', [482.0 11.3 532.7 13.2], 'b4c2', [1087.2 88.3], ...
+                     'si', [528.8 35.3], 'sic', [964.1 10.0], ...
+                     'sibc1', [482.0 11.3 532.7 13.2], 'sibc2', [1065 88.3]);
 
-peak_window = struct('b4c1', [150.7 414.6], 'b4c2', [448.4 575.4], ...
-                     'b4c4', [904.7 1300.1], 'si', [448.4 615.2], ...
-                     'sic', [874.9 1053.0]);
+peak_window = struct('b4c1', [448.4 575.4], 'b4c2', [1060 1120], ...
+                     'si', [448.4 615.2], 'sic', [874.9 1053.0], ...
+                     'sibc1', [448.4 575.4], 'sibc2', [1020 1100]);
 
 % Specify spectral bands to be analyzed
 wave_start = 130;                   % spectral bands to be analyzed
@@ -102,36 +101,20 @@ tic
 for j = 1:y_size
     sprintf('%d', j)
     parfor i = 1:x_size
-        if phase_map(j,i) == 1          
+        if phase_map(j,i) == 1                      
             [~,b4c1_start] = min(abs(wavenumber - peak_window.b4c1(1)));
             [~,b4c1_end] = min(abs(wavenumber - peak_window.b4c1(2)));
-            
-            [~,b4c2_start] = min(abs(wavenumber - peak_window.b4c2(1)));
-            [~,b4c2_end] = min(abs(wavenumber - peak_window.b4c2(2)));
             
             [~,b4c4_start] = min(abs(wavenumber - peak_window.b4c4(1)));
             [~,b4c4_end] = min(abs(wavenumber - peak_window.b4c4(2)));
             
             signal1 = [wavenumber(b4c1_start:b4c1_end) squeeze(dcube(j,i,b4c1_start:b4c1_end))];
-            signal2 = [wavenumber(b4c2_start:b4c2_end) squeeze(dcube(j,i,b4c2_start:b4c2_end))];
             signal4 = [wavenumber(b4c4_start:b4c4_end) squeeze(dcube(j,i,b4c4_start:b4c4_end))];
             
             [FitResults1, ~] = peakfit(signal1,0,0,2,1,0,3,first_guess.b4c1,1,0,0);         
-            [FitResults2, ~] = peakfit(signal2,0,0,2,1,0,3,first_guess.b4c2,1,0,0);         
             [FitResults4, ~] = peakfit(signal4,0,0,3,1,0,3,first_guess.b4c4,1,0,0);
 
-            fit_data(j,i) = mat2cell([FitResults1(:,2:5); FitResults2(:,2:5); FitResults4(:,2:5)], 7, 4);
-
-%             M(table_row:table_row + 7) = [1; NaN(7,1)];
-%             X(table_row:table_row + 7) = [i; NaN(7,1)];
-%             Y(table_row:table_row + 7) = [j; NaN(7,1)];
-%             H(table_row:table_row + 7) = [7; NaN(7,1)];
-%             Position(table_row:table_row + 7) = [FitResults1(:,2); FitResults2(:,2); FitResults4(:,2); NaN];
-%             Height(table_row:table_row + 7) = [FitResults1(:,3); FitResults2(:,3); FitResults4(:,3); NaN];
-%             FWHM(table_row:table_row + 7) = [FitResults1(:,4); FitResults2(:,4); FitResults4(:,4); NaN];
-%             Area(table_row:table_row + 7) = [FitResults1(:,5); FitResults2(:,5); FitResults4(:,5); NaN];
-% 
-%             table_row = table_row + 8;           
+            fit_data(j,i) = mat2cell([FitResults1(:,2:5); FitResults2(:,2:5)], 3, 4);          
         
         elseif phase_map(j,i) == 4
             [~,sic_start] = min(abs(wavenumber - peak_window.sic(1)));
@@ -142,29 +125,6 @@ for j = 1:y_size
             [FitResults, ~] = peakfit(sic_signal,0,0,1,1,0,3,first_guess.sic,1,0,0);
 
             fit_data(j,i) = mat2cell(FitResults(:,2:5), 1, 4);
-
-%             M(table_row:table_row + 1) = [4; NaN];
-%             X(table_row:table_row + 1) = [i; NaN];
-%             Y(table_row:table_row + 1) = [j; NaN];
-%             H(table_row:table_row + 1) = [1; NaN];
-%             Position(table_row:table_row + 1) = [FitResults(:,2); NaN];
-%             Height(table_row:table_row + 1) = [FitResults(:,3); NaN];
-%             FWHM(table_row:table_row + 1) = [FitResults(:,4); NaN];
-%             Area(table_row:table_row + 1) = [FitResults(:,5); NaN];
-% 
-%             table_row = table_row + 2;
-%             
-%         else
-%             M(table_row:table_row + 1) = [0; NaN];
-%             X(table_row:table_row + 1) = [i; NaN];
-%             Y(table_row:table_row + 1) = [j; NaN];
-%             H(table_row:table_row + 1) = [1; NaN];
-%             Position(table_row:table_row + 1) = NaN(2,1);
-%             Height(table_row:table_row + 1) = NaN(2,1);
-%             FWHM(table_row:table_row + 1) = NaN(2,1);
-%             Area(table_row:table_row + 1) = NaN(2,1);
-% 
-%             table_row = table_row + 2;
         end
     end
 end
