@@ -16,38 +16,36 @@ UIFigure.Visible = 'on';
 DataEditField.Value = file;
 
 data_name = fullfile(path, file);
-tic
-% data = table2array(readtable(data_name));
 data = readmatrix(data_name);
-toc
 
 
 %% Determine data array size
-tic
 s_size = find(data(2:end,3) == data(1,3), 1, 'first');
 
-x_size = (data(end,1) - data(1,1)) / (data(s_size + 1,1) - data(1,1)) + 1;
-y_size = (data(end,2) - data(1,2)) / (data(x_size*s_size + 1,2) - data(1,2)) + 1;
-toc
+x_size = round((data(end,1) - data(1,1)) / (data(s_size + 1,1) - data(1,1)) + 1);
+y_size = round((data(end,2) - data(1,2)) / (data(x_size*s_size + 1,2) - data(1,2)) + 1);
 
-% %% Convert raw data to usable format
-% % Store Raman shift
-% wavenumber = data(s_size:-1:1,3);    
-% 
-% % Initialize the cell that stores the Raman data
-% dcube = zeros(y_size,x_size,s_size);
-% 
-% tic
-% for j = 1:y_size
-%     for i = 1:x_size
-%         a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
-%         b = i*s_size + (j-1)*x_size*s_size;
-% 
-%         dcube(j,i,:) = data(b:-1:a,4);
-%     end
-% end
-% toc
-% 
-% tic
-% avg = flipud(squeeze(mean(dcube, [1 2])));
-% toc
+%% Convert raw data to usable format
+% Store Raman shift
+wavenumber = data(s_size:-1:1,3);    
+
+% Initialize the cell that stores the Raman data
+dcube = zeros(y_size,x_size,s_size);
+
+for j = 1:y_size
+    for i = 1:x_size
+        a = (i-1)*s_size + (j-1)*x_size*s_size + 1;
+        b = i*s_size + (j-1)*x_size*s_size;
+
+        dcube(j,i,:) = data(b:-1:a,4);
+    end
+end
+
+%%
+avg = flipud(squeeze(mean(dcube, [1 2])));
+SiBC = normalize(avg, 'range');
+
+%%
+Wavenumber = flipud(wavenumber);
+T = table(Wavenumber, SiBC);
+writetable(T, 'Standard Raman Spectra 1800.txt', 'Delimiter', 'tab')
